@@ -1,3 +1,3 @@
-# gl-abstraction
+# game
 
 I finally understand OpenGL enough that I can stop looking at it.
