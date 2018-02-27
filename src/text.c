@@ -2,14 +2,11 @@
 #include "misc.h"
 #include <assert.h>
 
-void text_init(Text *text, Font *font, const char *str, GLuint program, int height, float hdpi, float aspect) {
+void text_init(Text *text, Font *font, const char *str, GLuint program, int width, int height) {
 
     assert(text != NULL);
     assert(font != NULL);
     assert(str != NULL);
-
-    text->font = font;
-    text->str = copy_string(str);
 
     // Define vertex buffer.
     const int len = strlen(str);
@@ -20,9 +17,9 @@ void text_init(Text *text, Font *font, const char *str, GLuint program, int heig
         return;
     }
 
-    // Harfbuzz. TODO Don't hb_buffer_create() every time.
+    // Harfbuzz.
 
-    font->hb_buffer = hb_buffer_create();
+    hb_buffer_clear_contents(font->hb_buffer);
     hb_buffer_set_direction(font->hb_buffer, HB_DIRECTION_LTR);
 
     // Actually add the text and shape it.
@@ -36,12 +33,13 @@ void text_init(Text *text, Font *font, const char *str, GLuint program, int heig
     // Fill the buffer.
 
     const float scale = 1.0f / 64.0f / height * 2;
+    const float aspect = (float) width / height;
 
     float x = -1.0f,
           y = 0.0f;
     int buffer_i = 0;
-    text->width = 0.0; // Note: these don't scale.
-    text->height = 0.0;
+    //text->width = 0.0; // Note: these don't scale.
+    //text->height = 0.0;
 
     for (int i = 0; i < len; i++) {
 
@@ -51,34 +49,33 @@ void text_init(Text *text, Font *font, const char *str, GLuint program, int heig
             return;
         }
         const GlyphInfo *gi = &font->glyph_info[c-font->start];
-        if (gi->metrics.width == 0 || gi->metrics.height == 0) continue;
 
-        float *buf = &buffer[buffer_i*24];
+        if (gi->metrics.width > 0 && gi->metrics.height > 0) {
 
-        const float x1 = x + (glyph_pos[i].x_offset + gi->metrics.horiBearingX) * scale/aspect;
-        const float x2 = x1 + gi->metrics.width * scale/aspect;
-        const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)*scale;
-        const float y2 = y1 + gi->metrics.height * scale;
+            float *buf = &buffer[buffer_i*24];
 
-        //DEBUG("%ld", gi->metrics.width/64);
+            const float x1 = x + (glyph_pos[i].x_offset + gi->metrics.horiBearingX) * scale/aspect;
+            const float x2 = x1 + gi->metrics.width * scale/aspect;
+            const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)*scale;
+            const float y2 = y1 + gi->metrics.height * scale;
 
-        text->width += x2 - x1;
-        if (text->height < y2 - y1) text->height = y2 - y1;
+            //text->width += x2 - x1;
+            //if (text->height < y2 - y1) text->height = y2 - y1;
 
-        // Vertices --                  UV coordinates --
-        buf[ 0] = x1;   buf[ 1] = y1;   buf[ 2] = gi->u1;    buf[ 3] = gi->v1;
-        buf[ 4] = x1;   buf[ 5] = y2;   buf[ 6] = gi->u1;    buf[ 7] = gi->v2;
-        buf[ 8] = x2;   buf[ 9] = y1;   buf[10] = gi->u2;    buf[11] = gi->v1;
+            // Vertices --                  UV coordinates --
+            buf[ 0] = x1;   buf[ 1] = y1;   buf[ 2] = gi->u1;    buf[ 3] = gi->v1;
+            buf[ 4] = x1;   buf[ 5] = y2;   buf[ 6] = gi->u1;    buf[ 7] = gi->v2;
+            buf[ 8] = x2;   buf[ 9] = y1;   buf[10] = gi->u2;    buf[11] = gi->v1;
 
-        buf[12] = x1;   buf[13] = y2;   buf[14] = gi->u1;    buf[15] = gi->v2;
-        buf[16] = x2;   buf[17] = y1;   buf[18] = gi->u2;    buf[19] = gi->v1;
-        buf[20] = x2;   buf[21] = y2;   buf[22] = gi->u2;    buf[23] = gi->v2;
+            buf[12] = x1;   buf[13] = y2;   buf[14] = gi->u1;    buf[15] = gi->v2;
+            buf[16] = x2;   buf[17] = y1;   buf[18] = gi->u2;    buf[19] = gi->v1;
+            buf[20] = x2;   buf[21] = y2;   buf[22] = gi->u2;    buf[23] = gi->v2;
 
-        //x += gi->advance_x * scale;
+            buffer_i++;
+        }
+
         x += glyph_pos[i].x_advance * scale/aspect;
         y -= glyph_pos[i].y_advance * scale;
-
-        buffer_i++;
     }
 
     text->buffer_len = len * glyph_size;
@@ -118,14 +115,4 @@ void text_init(Text *text, Font *font, const char *str, GLuint program, int heig
 
 void text_destroy(Text *text) {
     assert(text != NULL);
-    free(text->str);
 }
-
-//void text_draw(Text *text) {
-//    assert(text != NULL);
-//    glUseProgram(program);
-//    glBindVertexArray(text->vao);
-//    glUniform4f(u_color, r, g, b, a);
-//    glUniform1i(u_texture, 1);
-//    glDrawArrays(GL_TRIANGLES, 0, 6*text->buffer_len);
-//}

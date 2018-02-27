@@ -5,15 +5,12 @@
 #include <GL/glew.h>
 
 struct Text {
-    Font *font;
-    char *str;
-    float width, height;
     GLuint vao, vbo;
     size_t buffer_len;
 };
 typedef struct Text Text;
 
-void text_init(Text *text, Font *font, const char *str, GLuint program, int height, float hdpi, float aspect);
+void text_init(Text *text, Font *font, const char *str, GLuint program, int width, int height);
 void text_destroy(Text *text);
 
 #endif

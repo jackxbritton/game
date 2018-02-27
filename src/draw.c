@@ -34,7 +34,7 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
     font_init(&dc->font,
               &dc->ft,
               "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-              144, (int) hdpi, (int) vdpi);
+              24, (int) hdpi, (int) vdpi);
 
     // Set texture units.
     glBindTextureUnit(0, dc->font.gl_texture);
@@ -50,6 +50,7 @@ void draw_context_destroy(DrawContext *dc) {
     catalog_destroy(&dc->catalog);
     shader_program_destroy(&dc->text_shader);
     font_destroy(&dc->font);
+    FT_Done_FreeType(dc->ft);
 }
 
 void draw_resize(DrawContext *dc, int w, int h) {
@@ -75,7 +76,7 @@ void draw_string(DrawContext *dc, const char *str) {
     assert(str != NULL);
 
     Text text;
-    text_init(&text, &dc->font, str, dc->text_shader.gl_program, dc->height, dc->hdpi, dc->aspect);
+    text_init(&text, &dc->font, str, dc->text_shader.gl_program, dc->width, dc->height);
 
     glUseProgram(dc->text_shader.gl_program);
     glBindVertexArray(text.vao);

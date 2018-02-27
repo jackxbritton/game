@@ -19,16 +19,21 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
         return;
     }
     if (error) {
-        DEBUG("FT_New_Face failed for font '%s'.", filename);
+        DEBUG("FT_New_Face failed for filename='%s'.", filename);
         return;
     }
 
-    FT_Set_Char_Size(font->face, 0, point_size*64, hdpi, vdpi);
+    error = FT_Set_Char_Size(font->face, 0, point_size*64, hdpi, vdpi);
+    if (error) {
+        DEBUG("FT_Set_Char_Size failed for filename='%s', point_size=%d, hdpi=%d, vdpi=%d.", filename, point_size, hdpi, vdpi);
+        return;
+    }
 
     // First, find the width and height of the texture map.
     // We're storing all the chars in one long row.
 
-    int width = 0, height = 0;
+    int width = 0,
+        height = 0;
 
     for (char c = font->start; c <= font->end; c++) {
 
@@ -48,9 +53,11 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
     glGenTextures(1, &font->gl_texture);
     glBindTexture(GL_TEXTURE_2D, font->gl_texture);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, width, height);
 
     // Allocate glyph info.
     font->glyph_info = malloc((font->end - font->start + 1) * sizeof(GlyphInfo));
@@ -82,10 +89,10 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
 
         GlyphInfo *gi = &font->glyph_info[c - font->start];
 
-        gi->u1 = (float) x / width;
-        gi->u2 = gi->u1 + (float) g->bitmap.width / width;
-        gi->v1 = 1.0 - (float) g->bitmap.rows / height;
-        gi->v2 = 1.0;
+        gi->u1 = (x + 0.5f) / width;
+        gi->u2 = (x + g->bitmap.width - 0.5f) / width;
+        gi->v1 = ((float) height - g->bitmap.rows + 0.5f) / height;
+        gi->v2 = 1.0f - 0.5f/height;
 
         gi->metrics = g->metrics;
 
@@ -93,24 +100,43 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
 
     }
 
-    for (char c = font->start; c <= font->end; c++) {
-    }
-
     // Harfbuzz.
+
     font->hb_font = hb_ft_font_create(font->face, NULL);
     if (font->hb_font == NULL) {
-        DEBUG("hb_ft_font_create failed.");
+        DEBUG("hb_ft_font_create failed for filename='%s'.", filename);
         return;
     }
+
     font->hb_face = hb_ft_face_create(font->face, NULL);
     if (font->hb_face == NULL) {
-        DEBUG("hb_ft_face_create failed.");
+        DEBUG("hb_ft_face_create failed for filename='%s'.", filename);
         return;
     }
+
+    font->hb_buffer = hb_buffer_create();
+    if (font->hb_buffer == NULL) {
+        DEBUG("hb_buffer_create failed.");
+        return;
+    }
+
+    // GL buffer (for text objects).
+    //font->gl_buffer_allocated = 256;
+    //font->gl_buffer = malloc(font->gl_buffer_allocated * 24*sizeof(float));
 
 }
 
 void font_destroy(Font *font) {
+
     assert(font != NULL);
+
     free(font->glyph_info);
+
+    //hb_ft_face_destroy(font->hb_face);
+    //hb_ft_font_destroy(font->hb_font);
+    hb_buffer_destroy(font->hb_buffer);
+
+    //free(font->gl_buffer);
+
+    FT_Done_Face(font->face);
 }

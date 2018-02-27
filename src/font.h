@@ -29,6 +29,10 @@ struct Font {
     hb_font_t *hb_font;
     hb_face_t *hb_face;
     hb_buffer_t *hb_buffer;
+
+    //float *gl_buffer; // For use by text objects when loading glyph vertices into OpenGL.
+    //size_t gl_buffer_allocated;
+
 };
 typedef struct Font Font;
 
