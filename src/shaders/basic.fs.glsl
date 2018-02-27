@@ -6,6 +6,5 @@ in vec2 uv_frag;
 
 void main() {
     float alpha = texture2D(texture, uv_frag).r;
-    gl_FragColor = vec4(0, 0, 0, alpha);
-    //gl_FragColor = vec4(0, 0.3, 0.5, 1);
+    gl_FragColor = vec4(1, 1, 1, alpha);
 }

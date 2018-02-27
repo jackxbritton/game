@@ -3,6 +3,7 @@
 #include "shader_program.h"
 #include "texture.h"
 #include "font.h"
+#include "text.h"
 #include "catalog.h"
 
 void init_buffer(GLuint program);
@@ -43,6 +44,10 @@ int main(int argc, char *argv[]) {
     font_init(&font, &ft, "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf");
     glBindTextureUnit(0, font.gl_texture);
 
+    // Example text.
+    Text text;
+    text_init(&text, &font, "hi there", sp.gl_program);
+
     glClearColor(0.0, 0.2, 0.4, 1.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
@@ -55,12 +60,19 @@ int main(int argc, char *argv[]) {
 
         glUseProgram(sp.gl_program);
         glUniform1i(u_texture, 0);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        glUseProgram(sp.gl_program);
+        glBindVertexArray(text.vao);
+        //glUniform4f(u_color, 1.0f, 1.0f, 1.0f, 1.0f);
+        glUniform1i(u_texture, 0);
+        glDrawArrays(GL_TRIANGLES, 0, text.buffer_len/(4*sizeof(float)));
 
         window_redraw(&window);
 
     }
 
+    text_destroy(&text);
     catalog_destroy(&catalog);
     font_destroy(&font);
     //texture_destroy(&texture);

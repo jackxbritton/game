@@ -4,8 +4,8 @@
 
 void font_init(Font *font, FT_Library *ft, const char *filename) {
 
-    const int start = ' ',
-                end = 'Z';
+    font->start = ' ';
+    font->end = 'z';
 
     assert(font != NULL);
     assert(ft != NULL);
@@ -32,7 +32,7 @@ void font_init(Font *font, FT_Library *ft, const char *filename) {
 
     int width = 0, height = 0;
 
-    for (char c = start; c <= end; c++) {
+    for (char c = font->start; c <= font->end; c++) {
 
         if (FT_Load_Char(font->face, c, FT_LOAD_RENDER)) {
             DEBUG("FT_Load_Char failed for char '%c'.", c);
@@ -54,9 +54,16 @@ void font_init(Font *font, FT_Library *ft, const char *filename) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 
+    // Allocate glyph info.
+    font->glyph_info = malloc((font->end - font->start + 1) * sizeof(GlyphInfo));
+    if (font->glyph_info == NULL) {
+        DEBUG("malloc failed.");
+        return;
+    }
+
     // Run through the chars again and blit to the texture.
     int x = 0;
-    for (char c = start; c <= end; c++) {
+    for (char c = font->start; c <= font->end; c++) {
 
         // Load the character.
         if (FT_Load_Char(font->face, c, FT_LOAD_RENDER)) {
@@ -73,21 +80,9 @@ void font_init(Font *font, FT_Library *ft, const char *filename) {
                         GL_RED, GL_UNSIGNED_BYTE,
                         g->bitmap.buffer);
 
-        x += g->bitmap.width;
-    }
+        // Fill glyph info.
 
-    // Fill glyph_info.
-
-    font->glyph_info = malloc((end - start + 1) * sizeof(GlyphInfo));
-    if (font->glyph_info == NULL) {
-        DEBUG("malloc failed.");
-        return;
-    }
-
-    for (char c = start; c <= end; c++) {
-
-        FT_GlyphSlot g = font->face->glyph;
-        GlyphInfo *gi = &font->glyph_info[c - start];
+        GlyphInfo *gi = &font->glyph_info[c - font->start];
 
         gi->advance_x = g->advance.x;
         gi->advance_y = g->advance.y;
@@ -99,6 +94,11 @@ void font_init(Font *font, FT_Library *ft, const char *filename) {
 
         gi->metrics = g->metrics;
 
+        x += g->bitmap.width;
+
+    }
+
+    for (char c = font->start; c <= font->end; c++) {
     }
 
     // Harfbuzz.

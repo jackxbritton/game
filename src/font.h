@@ -16,14 +16,19 @@ struct GlyphInfo {
 };
 typedef struct GlyphInfo GlyphInfo;
 
+// Font.
+
 struct Font {
+
     FT_Library *ft;
     FT_Face face;
     GLuint gl_texture;
     GlyphInfo *glyph_info;
 
-    hb_font_t   *hb_font; // TODO
-    hb_face_t   *hb_face;
+    char start, end;
+
+    hb_font_t *hb_font;
+    hb_face_t *hb_face;
 };
 typedef struct Font Font;
 
