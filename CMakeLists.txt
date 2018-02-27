@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5.1)
 
 include_directories(src /usr/include/freetype2)
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_C_FLAGS "-Wall")
+set(CMAKE_C_FLAGS "-g -Wall")
 
 set(BIN game)
 

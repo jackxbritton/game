@@ -88,7 +88,7 @@ void text_init(Text *text, Font *font, const char *str, GLuint program, int heig
     glBindVertexArray(text->vao);
     glGenBuffers(1, &text->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, text->vbo);
-    glBufferData(GL_ARRAY_BUFFER, text->buffer_len, buffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, text->buffer_len, buffer, GL_STREAM_DRAW);
 
     free(buffer);
 

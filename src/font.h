@@ -32,7 +32,7 @@ struct Font {
 };
 typedef struct Font Font;
 
-void font_init(Font *font, FT_Library *ft, const char *filename);
+void font_init(Font *font, FT_Library *ft, const char *filename, int point_size, int hdpi, int vdpi);
 void font_destroy(Font *font);
 
 #endif

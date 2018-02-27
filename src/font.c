@@ -2,16 +2,15 @@
 #include "misc.h"
 #include <assert.h>
 
-void font_init(Font *font, FT_Library *ft, const char *filename) {
-
-    font->start = ' ';
-    font->end = 'z';
+void font_init(Font *font, FT_Library *ft, const char *filename, int point_size, int hdpi, int vdpi) {
 
     assert(font != NULL);
     assert(ft != NULL);
     assert(filename != NULL);
 
     font->ft = ft;
+    font->start = ' ';
+    font->end = 'z';
 
     // Load the face.
     int error = FT_New_Face(*ft, filename, 0, &font->face);
@@ -24,8 +23,7 @@ void font_init(Font *font, FT_Library *ft, const char *filename) {
         return;
     }
 
-    font->size = 144;
-    FT_Set_Pixel_Sizes(font->face, 0, font->size);
+    FT_Set_Char_Size(font->face, 0, point_size*64, hdpi, vdpi);
 
     // First, find the width and height of the texture map.
     // We're storing all the chars in one long row.

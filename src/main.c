@@ -4,11 +4,16 @@
 
 int main(int argc, char *argv[]) {
 
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        DEBUG("%s", SDL_GetError());
+        return 1;
+    }
+
     Window window;
     window_init(&window);
 
     DrawContext dc;
-    draw_context_init(&dc, 16.0f/9.0f, window.hdpi);
+    draw_context_init(&dc, 16.0f/9.0f, window.hdpi, window.vdpi);
 
     // This stuff is sort of hacky,
     // but I think I reduced the evil
@@ -25,7 +30,11 @@ int main(int argc, char *argv[]) {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        draw_string(&dc, "yoo hoo");
+        if (window.input.up)         draw_string(&dc, "up");
+        if (window.input.down)       draw_string(&dc, "down");
+        if (window.input.left)       draw_string(&dc, "left");
+        if (window.input.right)      draw_string(&dc, "right");
+        if (window.input.mouse_left) draw_string(&dc, "MOUSE");
 
         window_redraw(&window);
 
@@ -33,6 +42,8 @@ int main(int argc, char *argv[]) {
 
     draw_context_destroy(&dc);
     window_destroy(&window);
+
+    SDL_Quit();
 
     return 0;
 }

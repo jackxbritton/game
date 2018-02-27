@@ -1,6 +1,7 @@
 #include "window.h"
 #include <GL/glew.h>
 #include "misc.h"
+#include <string.h>
 
 void window_init(Window *w) {
 
@@ -29,7 +30,7 @@ void window_init(Window *w) {
         DEBUG("%s", SDL_GetError());
         return;
     }
-
+    
     //SDL_ShowCursor(SDL_DISABLE);
 
     // OpenGL context.
@@ -47,8 +48,8 @@ void window_init(Window *w) {
     glewExperimental = GL_TRUE;
     glewInit();
 
-    w->input.quit = 0;
-
+    // Initialize things.
+    memset(&w->input, 0, sizeof(w->input));
     w->draw_context = NULL;
 }
 

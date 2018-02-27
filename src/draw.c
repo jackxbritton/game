@@ -9,7 +9,7 @@ static GLint gl_get_uniform(GLuint program, const char *id) {
     return out;
 }
 
-void draw_context_init(DrawContext *dc, float aspect, float hdpi) {
+void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
 
     assert(dc != NULL);
 
@@ -31,7 +31,10 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi) {
 
     // FreeType and our font.
     if (FT_Init_FreeType(&dc->ft)) DEBUG("FT_Init_FreeType failed.");
-    font_init(&dc->font, &dc->ft, "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf");
+    font_init(&dc->font,
+              &dc->ft,
+              "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+              144, (int) hdpi, (int) vdpi);
 
     // Set texture units.
     glBindTextureUnit(0, dc->font.gl_texture);

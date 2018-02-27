@@ -24,7 +24,7 @@ struct DrawContext {
 };
 typedef struct DrawContext DrawContext;
 
-void draw_context_init(DrawContext *dc, float aspect, float hdpi);
+void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi);
 void draw_context_destroy(DrawContext *dc);
 
 void draw_resize(DrawContext *dc, int width, int height);
