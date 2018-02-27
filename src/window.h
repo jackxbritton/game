@@ -5,13 +5,19 @@
 
 struct Window {
 
-    int width,
-        height;
     SDL_Window *window;
     SDL_GLContext context;
 
+    int width,
+        height;
+
+    float ddpi,
+          hdpi,
+          vdpi;
+
     struct {
-        int up,
+        int quit,
+            up,
             down,
             left,
             right,
@@ -27,7 +33,7 @@ typedef struct Window Window;
 void window_init(Window *w);
 void window_destroy(Window *w);
 
-int window_update(Window *w);
+void window_update(Window *w);
 void window_redraw(Window *w);
 
 #endif

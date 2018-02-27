@@ -10,13 +10,16 @@ int main(int argc, char *argv[]) {
     DrawContext dc;
     draw_context_init(&dc);
 
-    while (window_update(&window)) {
+    while (1) {
 
-        catalog_service(&dc.catalog); // Hotload junk.
+        window_update(&window);
+        if (window.input.quit) break;
+
+        catalog_service(&dc.catalog); // Make sure we hotload stuff.
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        draw_string(&dc, "Hello!!");
+        draw_string(&dc, "yoo hoo");
 
         window_redraw(&window);
 

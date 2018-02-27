@@ -19,6 +19,17 @@ void window_init(Window *w) {
         return;
     }
 
+    // Get the DPI.
+    int display = SDL_GetWindowDisplayIndex(w->window);
+    if (display < 0) {
+        DEBUG("%s", SDL_GetError());
+        return;
+    }
+    if (SDL_GetDisplayDPI(display, &w->ddpi, &w->hdpi, &w->vdpi) < 0) {
+        DEBUG("%s", SDL_GetError());
+        return;
+    }
+
     //SDL_ShowCursor(SDL_DISABLE);
 
     // OpenGL context.
@@ -36,7 +47,7 @@ void window_init(Window *w) {
     glewExperimental = GL_TRUE;
     glewInit();
 
-    return;
+    w->input.quit = 0;
 }
 
 void window_destroy(Window *w) {
@@ -44,14 +55,14 @@ void window_destroy(Window *w) {
     SDL_DestroyWindow(w->window);
 }
 
-int window_update(Window *w) {
+void window_update(Window *w) {
 
     SDL_Event event;
     int is_pressed;
 
     while (SDL_PollEvent(&event)) {
 
-        if (event.type == SDL_QUIT) return 0;
+        if (event.type == SDL_QUIT) w->input.quit = 1;
 
         if (event.type == SDL_WINDOWEVENT) {
             if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
@@ -84,8 +95,6 @@ int window_update(Window *w) {
             continue;
         }
     }
-
-    return 1;
 }
 
 void window_redraw(Window *w) {
