@@ -6,17 +6,28 @@
 #include "catalog.h"
 
 struct DrawContext {
+
+    float aspect,
+          hdpi;
+    int width,
+        height;
+
     ShaderProgram text_shader;
-    FT_Library ft;
-    Font font;
-    Catalog catalog;
     GLint u_texture,
           u_color;
+
+    FT_Library ft;
+    Font font;
+
+    Catalog catalog;
+
 };
 typedef struct DrawContext DrawContext;
 
-void draw_context_init(DrawContext *dc);
+void draw_context_init(DrawContext *dc, float aspect, float hdpi);
 void draw_context_destroy(DrawContext *dc);
+
+void draw_resize(DrawContext *dc, int width, int height);
 
 void draw_string(DrawContext *dc, const char *str);
 

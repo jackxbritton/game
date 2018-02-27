@@ -9,7 +9,7 @@ void window_init(Window *w) {
 
     // SDL window.
     w->window = SDL_CreateWindow(
-        "gl-abstraction",
+        "game",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         w->width, w->height,
         SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE
@@ -48,6 +48,8 @@ void window_init(Window *w) {
     glewInit();
 
     w->input.quit = 0;
+
+    w->draw_context = NULL;
 }
 
 void window_destroy(Window *w) {
@@ -66,9 +68,9 @@ void window_update(Window *w) {
 
         if (event.type == SDL_WINDOWEVENT) {
             if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                w->width = event.window.data1;
-                w->height = event.window.data2;
-                glViewport(0, 0, w->width, w->height);
+                if (w->draw_context != NULL) {
+                    draw_resize(w->draw_context, event.window.data1, event.window.data2);
+                }
                 continue;
             }
         }

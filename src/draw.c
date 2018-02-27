@@ -9,9 +9,12 @@ static GLint gl_get_uniform(GLuint program, const char *id) {
     return out;
 }
 
-void draw_context_init(DrawContext *dc) {
+void draw_context_init(DrawContext *dc, float aspect, float hdpi) {
 
     assert(dc != NULL);
+
+    dc->aspect = aspect;
+    dc->hdpi = hdpi;
 
     catalog_init(&dc->catalog);
 
@@ -44,6 +47,23 @@ void draw_context_destroy(DrawContext *dc) {
     catalog_destroy(&dc->catalog);
     shader_program_destroy(&dc->text_shader);
     font_destroy(&dc->font);
+}
+
+void draw_resize(DrawContext *dc, int w, int h) {
+
+    assert(dc != NULL);
+
+    const float ratio = (float) w / h;
+
+    if (ratio > dc->aspect) {
+        dc->width  = h*dc->aspect;
+        dc->height = h;
+        glViewport((w - dc->width)/2, 0, dc->width, dc->height);
+    } else {
+        dc->width  = w;
+        dc->height = w/dc->aspect;
+        glViewport(0, (h - dc->height)/2, dc->width, dc->height);
+    }
 }
 
 void draw_string(DrawContext *dc, const char *str) {

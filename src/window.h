@@ -2,11 +2,14 @@
 #define WINDOW_H
 
 #include <SDL2/SDL.h>
+#include "draw.h"
 
 struct Window {
 
     SDL_Window *window;
     SDL_GLContext context;
+    
+    DrawContext *draw_context;
 
     int width,
         height;
@@ -26,6 +29,9 @@ struct Window {
             mouse_left,
             mouse_right;
     } input;
+
+    void (*resize_callback)(void *arg, int width, int height);
+    void *resize_callback_arg;
 
 };
 typedef struct Window Window;
