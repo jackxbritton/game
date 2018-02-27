@@ -42,11 +42,12 @@ int main(int argc, char *argv[]) {
 
     Font font;
     font_init(&font, &ft, "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf");
+    //font_init(&font, &ft, "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf");
     glBindTextureUnit(0, font.gl_texture);
 
     // Example text.
     Text text;
-    text_init(&text, &font, "hi there", sp.gl_program);
+    text_init(&text, &font, "T. AV", sp.gl_program);
 
     glClearColor(0.0, 0.2, 0.4, 1.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

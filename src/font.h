@@ -29,6 +29,7 @@ struct Font {
 
     hb_font_t *hb_font;
     hb_face_t *hb_face;
+    hb_buffer_t *hb_buffer;
 };
 typedef struct Font Font;
 
