@@ -72,7 +72,7 @@ void draw_string(DrawContext *dc, const char *str) {
     assert(str != NULL);
 
     Text text;
-    text_init(&text, &dc->font, str, dc->text_shader.gl_program);
+    text_init(&text, &dc->font, str, dc->text_shader.gl_program, dc->height, dc->hdpi, dc->aspect);
 
     glUseProgram(dc->text_shader.gl_program);
     glBindVertexArray(text.vao);

@@ -2,7 +2,7 @@
 #include "misc.h"
 #include <assert.h>
 
-void text_init(Text *text, Font *font, const char *str, GLuint program) {
+void text_init(Text *text, Font *font, const char *str, GLuint program, int height, float hdpi, float aspect) {
 
     assert(text != NULL);
     assert(font != NULL);
@@ -35,7 +35,7 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     // Fill the buffer.
 
-    const float scale = 1.0f / 64.0f / 72.0f; // TODO
+    const float scale = 1.0f / 64.0f / height * 2;
 
     float x = -1.0f,
           y = 0.0f;
@@ -51,16 +51,19 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
             return;
         }
         const GlyphInfo *gi = &font->glyph_info[c-font->start];
+        if (gi->metrics.width == 0 || gi->metrics.height == 0) continue;
 
         float *buf = &buffer[buffer_i*24];
 
-        const float x1 = x + (glyph_pos[i].x_offset + gi->metrics.horiBearingX) * scale;
-        const float x2 = x1 + gi->metrics.width * scale;
+        const float x1 = x + (glyph_pos[i].x_offset + gi->metrics.horiBearingX) * scale/aspect;
+        const float x2 = x1 + gi->metrics.width * scale/aspect;
         const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)*scale;
         const float y2 = y1 + gi->metrics.height * scale;
 
+        //DEBUG("%ld", gi->metrics.width/64);
+
         text->width += x2 - x1;
-        if (text->height < y2 - y1)  text->height = y2 - y1;
+        if (text->height < y2 - y1) text->height = y2 - y1;
 
         // Vertices --                  UV coordinates --
         buf[ 0] = x1;   buf[ 1] = y1;   buf[ 2] = gi->u1;    buf[ 3] = gi->v1;
@@ -72,8 +75,8 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
         buf[20] = x2;   buf[21] = y2;   buf[22] = gi->u2;    buf[23] = gi->v2;
 
         //x += gi->advance_x * scale;
-        x += glyph_pos[i].x_advance * scale;
-        y -= glyph_pos[i].y_advance / 64;
+        x += glyph_pos[i].x_advance * scale/aspect;
+        y -= glyph_pos[i].y_advance * scale;
 
         buffer_i++;
     }

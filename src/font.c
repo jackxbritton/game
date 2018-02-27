@@ -24,8 +24,8 @@ void font_init(Font *font, FT_Library *ft, const char *filename) {
         return;
     }
 
-    const int size = 36;
-    FT_Set_Pixel_Sizes(font->face, 0, size);
+    font->size = 144;
+    FT_Set_Pixel_Sizes(font->face, 0, font->size);
 
     // First, find the width and height of the texture map.
     // We're storing all the chars in one long row.

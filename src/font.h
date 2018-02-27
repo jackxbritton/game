@@ -24,6 +24,7 @@ struct Font {
     GlyphInfo *glyph_info;
 
     char start, end;
+    int size;
 
     hb_font_t *hb_font;
     hb_face_t *hb_face;
