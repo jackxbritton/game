@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     // Basic shader program.
     ShaderProgram sp;
-    shader_program_init(&sp, "../src/shaders/basic.vs.glsl", "../src/shaders/basic.fs.glsl");
+    shader_program_init(&sp, "../src/shaders/mask.vs.glsl", "../src/shaders/mask.fs.glsl");
     catalog_add(&catalog, sp.vert_path, shader_program_reload, &sp);
     catalog_add(&catalog, sp.frag_path, shader_program_reload, &sp);
 
@@ -29,6 +29,8 @@ int main(int argc, char *argv[]) {
     // Uniform.
     GLint u_texture = glGetUniformLocation(sp.gl_program, "texture");
     if (u_texture == -1) DEBUG("Couldn't find u_texture.");
+    GLint u_color = glGetUniformLocation(sp.gl_program, "color");
+    if (u_color == -1) DEBUG("Couldn't find u_color.");
 
     // Texture.
     //Texture texture;
@@ -47,9 +49,9 @@ int main(int argc, char *argv[]) {
 
     // Example text.
     Text text;
-    text_init(&text, &font, "T. AV", sp.gl_program);
+    text_init(&text, &font, "T. AV. y g oh", sp.gl_program);
 
-    glClearColor(0.0, 0.2, 0.4, 1.0);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
 
@@ -65,7 +67,7 @@ int main(int argc, char *argv[]) {
 
         glUseProgram(sp.gl_program);
         glBindVertexArray(text.vao);
-        //glUniform4f(u_color, 1.0f, 1.0f, 1.0f, 1.0f);
+        glUniform4f(u_color, 0.1f, 0.8f, 0.9f, 1.0f);
         glUniform1i(u_texture, 0);
         glDrawArrays(GL_TRIANGLES, 0, text.buffer_len/(4*sizeof(float)));
 

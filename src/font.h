@@ -8,8 +8,6 @@
 #include <harfbuzz/hb-ft.h>
 
 struct GlyphInfo {
-    float advance_x,
-          advance_y;
     float u1, v1,
           u2, v2;
     FT_Glyph_Metrics metrics;

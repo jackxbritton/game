@@ -16,6 +16,4 @@ typedef struct Text Text;
 void text_init(Text *text, Font *font, const char *str, GLuint program);
 void text_destroy(Text *text);
 
-//void text_draw(Text *text);
-
 #endif

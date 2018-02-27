@@ -84,9 +84,6 @@ void font_init(Font *font, FT_Library *ft, const char *filename) {
 
         GlyphInfo *gi = &font->glyph_info[c - font->start];
 
-        gi->advance_x = g->advance.x;
-        gi->advance_y = g->advance.y;
-
         gi->u1 = (float) x / width;
         gi->u2 = gi->u1 + (float) g->bitmap.width / width;
         gi->v1 = 1.0 - (float) g->bitmap.rows / height;

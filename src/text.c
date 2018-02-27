@@ -35,7 +35,7 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     // Fill the buffer.
 
-    const float scale = 1.0f / 64.0f / 48.0f; // TODO
+    const float scale = 1.0f / 64.0f / 72.0f; // TODO
 
     float x = -1.0f,
           y = 0.0f;
