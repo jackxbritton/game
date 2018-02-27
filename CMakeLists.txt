@@ -14,5 +14,6 @@ add_executable(${BIN} src/main.c
                       src/texture.c
                       src/catalog.c
                       src/font.c
-                      src/text.c)
+                      src/text.c
+                      src/draw.c)
 target_link_libraries(${BIN} m SDL2 GL GLEW freetype harfbuzz)
