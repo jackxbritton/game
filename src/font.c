@@ -32,6 +32,8 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
     // First, find the width and height of the texture map.
     // We're storing all the chars in one long row.
 
+    const int gap = 4; // TODO
+
     int width = 0,
         height = 0;
 
@@ -44,8 +46,10 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
 
         FT_GlyphSlot g = font->face->glyph;
 
+        if (g->bitmap.width == 0 && g->bitmap.rows == 0) continue;
+
         // Update width and height.
-        width += g->bitmap.width;
+        width += g->bitmap.width + gap;
         if (height < g->bitmap.rows) height = g->bitmap.rows;
     }
 
@@ -77,6 +81,11 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
         }
 
         FT_GlyphSlot g = font->face->glyph;
+        GlyphInfo *gi = &font->glyph_info[c - font->start];
+
+        gi->metrics = g->metrics;
+
+        if (g->bitmap.width == 0 && g->bitmap.rows == 0) continue;
 
         // Copy the bitmap.
         glTexSubImage2D(GL_TEXTURE_2D, 0,
@@ -86,17 +95,12 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
                         g->bitmap.buffer);
 
         // Fill glyph info.
-
-        GlyphInfo *gi = &font->glyph_info[c - font->start];
-
         gi->u1 = (x + 0.5f) / width;
         gi->u2 = (x + g->bitmap.width - 0.5f) / width;
-        gi->v1 = ((float) height - g->bitmap.rows + 0.5f) / height;
+        gi->v1 = 1.0f - (g->bitmap.rows - 0.5f) / height;
         gi->v2 = 1.0f - 0.5f/height;
 
-        gi->metrics = g->metrics;
-
-        x += g->bitmap.width;
+        x += g->bitmap.width + gap;
 
     }
 

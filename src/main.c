@@ -28,13 +28,17 @@ int main(int argc, char *argv[]) {
 
         catalog_service(&dc.catalog); // Make sure we hotload stuff.
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        draw_clear(&dc);
 
         if (window.input.up)         draw_string(&dc, "up");
         if (window.input.down)       draw_string(&dc, "down");
         if (window.input.left)       draw_string(&dc, "left");
         if (window.input.right)      draw_string(&dc, "right");
-        if (window.input.mouse_left) draw_string(&dc, "MOUSE");
+        if (window.input.mouse_left) draw_string(&dc, "mouse");
+
+        char buffer[64];
+        snprintf(buffer, 64, "%dx%d, %dx%d", window.width, window.height, dc.width, dc.height);
+        draw_string(&dc, buffer);
 
         window_redraw(&window);
 

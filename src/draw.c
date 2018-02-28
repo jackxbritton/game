@@ -14,7 +14,6 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
     assert(dc != NULL);
 
     dc->aspect = aspect;
-    dc->hdpi = hdpi;
 
     catalog_init(&dc->catalog);
 
@@ -34,7 +33,7 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
     font_init(&dc->font,
               &dc->ft,
               "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-              24, (int) hdpi, (int) vdpi);
+              48, (int) hdpi, (int) vdpi);
 
     // Set texture units.
     glBindTextureUnit(0, dc->font.gl_texture);
@@ -68,6 +67,10 @@ void draw_resize(DrawContext *dc, int w, int h) {
         dc->height = w/dc->aspect;
         glViewport(0, (h - dc->height)/2, dc->width, dc->height);
     }
+}
+
+void draw_clear(DrawContext *dc) {
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void draw_string(DrawContext *dc, const char *str) {

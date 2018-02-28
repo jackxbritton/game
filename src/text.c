@@ -32,8 +32,8 @@ void text_init(Text *text, Font *font, const char *str, GLuint program, int widt
 
     // Fill the buffer.
 
-    const float scale = 1.0f / 64.0f / height * 2;
-    const float aspect = (float) width / height;
+    const float scale_x = 2.0f / (64 * width);
+    const float scale_y = 2.0f / (64 * height);
 
     float x = -1.0f,
           y = 0.0f;
@@ -54,10 +54,10 @@ void text_init(Text *text, Font *font, const char *str, GLuint program, int widt
 
             float *buf = &buffer[buffer_i*24];
 
-            const float x1 = x + (glyph_pos[i].x_offset + gi->metrics.horiBearingX) * scale/aspect;
-            const float x2 = x1 + gi->metrics.width * scale/aspect;
-            const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)*scale;
-            const float y2 = y1 + gi->metrics.height * scale;
+            const float x1 = x + (glyph_pos[i].x_offset + gi->metrics.horiBearingX) * scale_x;
+            const float x2 = x1 + gi->metrics.width * scale_x;
+            const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)*scale_y;
+            const float y2 = y1 + gi->metrics.height * scale_y;
 
             //text->width += x2 - x1;
             //if (text->height < y2 - y1) text->height = y2 - y1;
@@ -74,11 +74,11 @@ void text_init(Text *text, Font *font, const char *str, GLuint program, int widt
             buffer_i++;
         }
 
-        x += glyph_pos[i].x_advance * scale/aspect;
-        y -= glyph_pos[i].y_advance * scale;
+        x += glyph_pos[i].x_advance * scale_x;
+        y -= glyph_pos[i].y_advance * scale_y;
     }
 
-    text->buffer_len = len * glyph_size;
+    text->buffer_len = buffer_i * glyph_size;
 
     // Generate vbo.
     glGenVertexArrays(1, &text->vao);

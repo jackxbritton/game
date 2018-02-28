@@ -7,8 +7,7 @@
 
 struct DrawContext {
 
-    float aspect,
-          hdpi;
+    float aspect;
     int width,
         height;
 
@@ -28,6 +27,8 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi);
 void draw_context_destroy(DrawContext *dc);
 
 void draw_resize(DrawContext *dc, int width, int height);
+
+void draw_clear(DrawContext *dc);
 
 void draw_string(DrawContext *dc, const char *str);
 

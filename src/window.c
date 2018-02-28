@@ -69,8 +69,10 @@ void window_update(Window *w) {
 
         if (event.type == SDL_WINDOWEVENT) {
             if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                w->width  = event.window.data1;
+                w->height = event.window.data2;
                 if (w->draw_context != NULL) {
-                    draw_resize(w->draw_context, event.window.data1, event.window.data2);
+                    draw_resize(w->draw_context, w->width, w->height);
                 }
                 continue;
             }
