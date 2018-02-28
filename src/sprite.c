@@ -18,44 +18,31 @@ void sprite_init(Sprite *sprite, float x1, float y1,
     b[20] = x2;  b[21] = y2;  b[22] = u2;  b[23] = v2;
 }
 
-void sprite_batch_init(SpriteBatch *sb) {
+void sprite_batch_init(SpriteBatch *sb, size_t size) {
     assert(sb != NULL);
-    sb->sprites_allocated = 4;
-    sb->sprites = malloc(sb->sprites_allocated * sizeof(Sprite));
-    if (sb->sprites == NULL) {
-        DEBUG("malloc failed.");
-        return;
-    }
-    sb->sprites_count = 0;
+    array_init(&sb->sprites, size, sizeof(Sprite));
+    glGenBuffers(1, &sb->vbo);
 }
 
 void sprite_batch_destroy(SpriteBatch *sb) {
     assert(sb != NULL);
-    free(sb->sprites);
+    array_destroy(&sb->sprites);
+    glDeleteBuffers(1, &sb->vbo);
 }
 
 void sprite_batch_add(SpriteBatch *sb, Sprite *s) {
-
     assert(sb != NULL);
     assert(s != NULL);
-
-    // Allocate more memory?
-    if (sb->sprites_count == sb->sprites_allocated) {
-        sb->sprites_allocated *= 2;
-        errno = 0;
-        sb->sprites = realloc(sb->sprites, sb->sprites_allocated*sizeof(Sprite));
-        if (errno == ENOMEM) {
-            DEBUG("realloc failed.");
-            return;
-        }
-    }
-
-    // Add it.
-    sb->sprites[sb->sprites_count] = *s;
-    sb->sprites_count++;
+    array_add(&sb->sprites, s);
 }
 
 void sprite_batch_clear(SpriteBatch *sb) {
     assert(sb != NULL);
-    sb->sprites_count = 0;
+    array_clear(&sb->sprites);
+}
+
+void sprite_batch_update_vbo(SpriteBatch *sb) {
+    assert(sb != NULL);
+    glBindBuffer(GL_ARRAY_BUFFER, sb->vbo);
+    glBufferData(GL_ARRAY_BUFFER, sb->sprites.count*sizeof(Sprite), sb->sprites.buffer, GL_DYNAMIC_DRAW);
 }

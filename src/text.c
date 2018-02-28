@@ -90,7 +90,7 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
     glBindVertexArray(text->vao);
     glGenBuffers(1, &text->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, text->vbo);
-    glBufferData(GL_ARRAY_BUFFER, text->buffer_len, array->buffer, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, text->buffer_len, array->buffer, GL_DYNAMIC_DRAW);
 
     // Attrib pointers.
     glVertexAttribPointer(
@@ -118,4 +118,6 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
 void text_destroy(Text *text) {
     assert(text != NULL);
+    glDeleteVertexArrays(1, &text->vbo);
+    glDeleteBuffers(1, &text->vbo);
 }

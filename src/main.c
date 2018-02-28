@@ -85,6 +85,23 @@ int main(int argc, char *argv[]) {
         glUniform4f(dc.u_color, 0.1f, 0.8f, 0.9f, 1.0f);
         draw_string(&dc, buffer, x, y, TEXT_ALIGN_CENTER);
 
+        // TODO Draw a textured quad.
+        // Need a sprite batch.
+
+        /*
+        const GLfloat transform[] = {
+            0.0f,      0.0f, 0.0f,
+            0.0f, dc.aspect, 0.0f,
+            0.0f,      0.0f, 1.0f
+        };
+
+        glUseProgram(dc.quad_shader.gl_program);
+        glBindVertexArray(text->vao);
+        glUniform1i(dc->u_texture, 0);
+        glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
+        glDrawArrays(GL_TRIANGLES, 0, text->buffer_len/(4*sizeof(float)));
+        */
+
         window_redraw(&window);
 
     }

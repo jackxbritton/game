@@ -3,6 +3,7 @@
 
 #include "shader_program.h"
 #include "font.h"
+#include "texture.h"
 #include "text.h"
 #include "catalog.h"
 
@@ -14,13 +15,16 @@ struct DrawContext {
     float hdpi,
           vdpi;
 
-    ShaderProgram text_shader;
+    ShaderProgram text_shader,
+                  quad_shader;
     GLint u_texture,
           u_color,
           u_transform;
 
     FT_Library ft;
     Font font;
+
+    Texture texture;
 
     Catalog catalog;
 

@@ -21,10 +21,17 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
 
     // Text shader.
     shader_program_init(&dc->text_shader,
-                        "../src/shaders/mask.vs.glsl",
-                        "../src/shaders/mask.fs.glsl");
+                        "../src/shaders/text.vs.glsl",
+                        "../src/shaders/text.fs.glsl");
     catalog_add(&dc->catalog, dc->text_shader.vert_path, shader_program_reload, &dc->text_shader);
     catalog_add(&dc->catalog, dc->text_shader.frag_path, shader_program_reload, &dc->text_shader);
+
+    // Quad shader.
+    shader_program_init(&dc->quad_shader,
+                        "../src/shaders/quad.vs.glsl",
+                        "../src/shaders/quad.fs.glsl");
+    catalog_add(&dc->catalog, dc->quad_shader.vert_path, shader_program_reload, &dc->quad_shader);
+    catalog_add(&dc->catalog, dc->quad_shader.frag_path, shader_program_reload, &dc->quad_shader);
 
     // Uniforms.
     dc->u_texture   = gl_get_uniform(dc->text_shader.gl_program, "texture");
@@ -38,8 +45,16 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
               "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
               72, (int) dc->hdpi, (int) dc->vdpi);
 
+    // TODO draw_context_load_texture?
+    // TODO draw_context_load_font?
+
+    // Load a texture.
+    texture_init(&dc->texture, "../assets/tiles.png");
+    catalog_add(&dc->catalog, dc->texture.path, texture_reload, &dc->texture);
+
     // Set texture units.
     glBindTextureUnit(0, dc->font.gl_texture);
+    glBindTextureUnit(1, dc->texture.gl_texture);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
