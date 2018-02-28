@@ -14,8 +14,7 @@ int main(int argc, char *argv[]) {
     window_init(&window);
 
     DrawContext dc;
-    const float aspect = 16.0f/9.0f;
-    draw_context_init(&dc, aspect, window.hdpi, window.vdpi);
+    draw_context_init(&dc, 16.0f/9.0f, window.hdpi, window.vdpi);
 
     // This stuff is sort of hacky,
     // but I think I reduced the evil
@@ -55,9 +54,9 @@ int main(int argc, char *argv[]) {
 
         catalog_service(&dc.catalog); // Make sure we hotload stuff.
 
-        const float speed = 0.5f;
-        y -= window.input.down  * speed * window.dt;
-        y += window.input.up    * speed * window.dt;
+        const float speed = 1.0f;
+        y -= window.input.down  * speed*dc.aspect * window.dt;
+        y += window.input.up    * speed*dc.aspect * window.dt;
         x -= window.input.left  * speed * window.dt;
         x += window.input.right * speed * window.dt;
 
@@ -79,16 +78,18 @@ int main(int argc, char *argv[]) {
 
         draw_clear(&dc);
 
-        // Moving text.
-        snprintf(buffer, 64, "(%1.2f, %1.2f)", x, y);
-        draw_string(&dc, buffer, x, y, TEXT_ALIGN_CENTER);
+        // Static text.
+        glUniform4f(dc.u_color, 0.8f, 0.3f, 0.3f, 1.0f);
+        draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f, TEXT_ALIGN_RIGHT);
 
         // FPS average.
-        draw_text(&dc, &fps_text, -1.0f + 0.1f, -1.0f + 0.1f*aspect, TEXT_ALIGN_LEFT);
+        glUniform4f(dc.u_color, 0.5f, 0.9f, 0.5f, 1.0f);
+        draw_text(&dc, &fps_text, -1.0f + 0.1f, -1.0f + 0.1f*dc.aspect, TEXT_ALIGN_LEFT);
 
-        // Static text.
-        //draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f - static_text.height*2.0f/dc.width*aspect, TEXT_ALIGN_LEFT);
-        draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f, TEXT_ALIGN_RIGHT);
+        // Moving text.
+        snprintf(buffer, 64, "(%d, %d)", window.input.mouse_x, window.input.mouse_y);
+        glUniform4f(dc.u_color, 0.1f, 0.8f, 0.9f, 1.0f);
+        draw_string(&dc, buffer, x, y, TEXT_ALIGN_CENTER);
 
         window_redraw(&window);
 

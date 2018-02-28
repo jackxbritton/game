@@ -33,7 +33,7 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
     font_init(&dc->font,
               &dc->ft,
               "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-              24, (int) hdpi, (int) vdpi);
+              48, (int) hdpi, (int) vdpi);
 
     // Set texture units.
     glBindTextureUnit(0, dc->font.gl_texture);
@@ -106,7 +106,7 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
 
     glUseProgram(dc->text_shader.gl_program);
     glBindVertexArray(text->vao);
-    glUniform4f(dc->u_color, 0.1f, 0.8f, 0.9f, 1.0f);
+    //glUniform4f(dc->u_color, 0.1f, 0.8f, 0.9f, 1.0f);
     glUniform1i(dc->u_texture, 0);
     glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
     glDrawArrays(GL_TRIANGLES, 0, text->buffer_len/(4*sizeof(float)));

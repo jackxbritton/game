@@ -13,6 +13,7 @@ add_executable(${BIN} src/main.c
                       src/shader_program.c
                       src/texture.c
                       src/catalog.c
+                      src/sprite.c
                       src/font.c
                       src/text.c
                       src/draw.c

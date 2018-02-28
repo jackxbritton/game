@@ -32,6 +32,8 @@ void draw_resize(DrawContext *dc, int width, int height);
 
 void draw_clear(DrawContext *dc);
 
+// Text rendering.
+
 enum TextAlignment {
     TEXT_ALIGN_LEFT,
     TEXT_ALIGN_CENTER,

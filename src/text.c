@@ -1,6 +1,7 @@
 #include "text.h"
 #include "misc.h"
 #include <assert.h>
+#include "sprite.h"
 
 void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
@@ -8,11 +9,16 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
     assert(font != NULL);
     assert(str != NULL);
 
-    // Define vertex buffer.
+    // Define sprite buffer.
+
     const int len = strlen(str);
-    const int glyph_size = 24*sizeof(float);
-    float *buffer = malloc(len * glyph_size); // TODO Put a big buffer in font so we just allocate once.
-    if (buffer == NULL) {
+    if (len == 0) {
+        DEBUG("strlen(str) is 0.");
+        return;
+    }
+
+    Sprite *sb = malloc(len * sizeof(Sprite)); // TODO Put a big buffer in font (or somewhere else?) so we just allocate once.
+    if (sb == NULL) {
         DEBUG("malloc failed while allocating string '%s'.", str);
         return;
     }
@@ -26,8 +32,8 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
     hb_buffer_add_utf8(font->hb_buffer, str, strlen(str), 0, strlen(str));
     hb_shape(font->hb_font, font->hb_buffer, NULL, 0);
 
+    // Get the position data.
     unsigned int glyph_count;
-    //hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(font->hb_buffer, &glyph_count);
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(font->hb_buffer, &glyph_count);
 
     // Calculate text width.
@@ -37,7 +43,7 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     // Fill the buffer.
 
-    int buffer_i = 0;
+    int sb_i = 0;
 
     float xi = x;
     text->width = 0.0f;
@@ -60,23 +66,14 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
         if (gi->metrics.width > 0 && gi->metrics.height > 0) {
 
-            float *buf = &buffer[buffer_i*24];
-
             const float x1 = xi + (glyph_pos[i].x_offset + gi->metrics.horiBearingX)/64;
             const float x2 = x1 + gi->metrics.width/64;
             const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)/64;
             const float y2 = y1 + gi->metrics.height/64;
 
-            // Vertices --                  UV coordinates --
-            buf[ 0] = x1;   buf[ 1] = y1;   buf[ 2] = gi->u1;    buf[ 3] = gi->v1;
-            buf[ 4] = x1;   buf[ 5] = y2;   buf[ 6] = gi->u1;    buf[ 7] = gi->v2;
-            buf[ 8] = x2;   buf[ 9] = y1;   buf[10] = gi->u2;    buf[11] = gi->v1;
+            sprite_init(&sb[sb_i], x1, y1, x2, y2, gi->u1, gi->v1, gi->u2, gi->v2);
 
-            buf[12] = x1;   buf[13] = y2;   buf[14] = gi->u1;    buf[15] = gi->v2;
-            buf[16] = x2;   buf[17] = y1;   buf[18] = gi->u2;    buf[19] = gi->v1;
-            buf[20] = x2;   buf[21] = y2;   buf[22] = gi->u2;    buf[23] = gi->v2;
-
-            buffer_i++;
+            sb_i++;
         }
 
         xi += glyph_pos[i].x_advance/64;
@@ -85,16 +82,16 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     if (x - xi > text->width) text->width = x - xi;
 
-    text->buffer_len = buffer_i * glyph_size;
+    text->buffer_len = sb_i * sizeof(Sprite);
 
     // Generate vbo.
     glGenVertexArrays(1, &text->vao);
     glBindVertexArray(text->vao);
     glGenBuffers(1, &text->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, text->vbo);
-    glBufferData(GL_ARRAY_BUFFER, text->buffer_len, buffer, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, text->buffer_len, sb, GL_STREAM_DRAW);
 
-    free(buffer);
+    free(sb);
 
     // Attrib pointers.
     glVertexAttribPointer(
