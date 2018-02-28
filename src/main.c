@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
           y = 0.0f;
 
     // FPS counter stuff.
-    const int update_fps_every = 100;
+    const int update_fps_every = 50;
     int last_fps_update = 0;
     float fps = 0.0f;
 
@@ -36,6 +36,17 @@ int main(int argc, char *argv[]) {
 
     Text fps_text;
     text_init(&fps_text, &dc.font, "-", dc.text_shader.gl_program, dc.width, dc.height);
+
+    Text static_text;
+    const char *static_str = "This field represents a default line spacing\n"
+                             "(i.e., the baseline-to-baseline distance) when\n"
+                             "writing text with this font. Note that it\n"
+                             "usually is larger than the sum of the ascender\n"
+                             "and descender taken as absolute values. There is\n"
+                             "also no guarantee that no glyphs extend above or\n"
+                             "below subsequent baselines when using this distance -\n"
+                             "think of it as a value the designer of the font finds appropriate.";
+    text_init(&static_text, &dc.font, static_str, dc.text_shader.gl_program, dc.width, dc.height);
 
     while (1) {
 
@@ -75,11 +86,16 @@ int main(int argc, char *argv[]) {
         // FPS average.
         draw_text(&dc, &fps_text, -1.0f + 0.1f, -1.0f + 0.1f*aspect, TEXT_ALIGN_LEFT);
 
+        // Static text.
+        draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f - static_text.height*2.0f/dc.width*aspect, TEXT_ALIGN_LEFT);
+
         window_redraw(&window);
 
     }
 
+    text_destroy(&static_text);
     text_destroy(&fps_text);
+
     draw_context_destroy(&dc);
     window_destroy(&window);
 

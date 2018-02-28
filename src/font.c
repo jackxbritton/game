@@ -144,7 +144,7 @@ void font_destroy(Font *font) {
 }
 
 int font_contains_char(Font *font, char c) {
-    //if (c == '\n') return 1;
+    if (c == '\n') return 1;
     if (c >= font->start && c <= font->end) return 1;
     DEBUG("Character '%c' is outside of glyph range '%c'-'%c'.", c, font->start, font->end);
     return 0;
