@@ -14,7 +14,8 @@ struct DrawContext {
 
     ShaderProgram text_shader;
     GLint u_texture,
-          u_color;
+          u_color,
+          u_transform;
 
     FT_Library ft;
     Font font;

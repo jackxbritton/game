@@ -61,8 +61,6 @@ void window_destroy(Window *w) {
 void window_update(Window *w) {
 
     SDL_Event event;
-    int is_pressed;
-
     while (SDL_PollEvent(&event)) {
 
         if (event.type == SDL_QUIT) w->input.quit = 1;
@@ -79,7 +77,7 @@ void window_update(Window *w) {
         }
 
         if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
-            is_pressed = event.type == SDL_KEYDOWN;
+            int is_pressed = event.type == SDL_KEYDOWN;
             if      (event.key.keysym.sym == SDLK_w) w->input.up    = is_pressed;
             else if (event.key.keysym.sym == SDLK_s) w->input.down  = is_pressed;
             else if (event.key.keysym.sym == SDLK_a) w->input.left  = is_pressed;
@@ -94,12 +92,17 @@ void window_update(Window *w) {
         }
 
         if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
-            is_pressed = event.type == SDL_MOUSEBUTTONDOWN;
+            int is_pressed = event.type == SDL_MOUSEBUTTONDOWN;
             if      (event.button.button == SDL_BUTTON_LEFT)  w->input.mouse_left  = is_pressed;
             else if (event.button.button == SDL_BUTTON_RIGHT) w->input.mouse_right = is_pressed;
             continue;
         }
     }
+
+    Uint32 ms_now = SDL_GetTicks();
+    w->dt = (ms_now - w->ms_last) / 1000.0f;
+    w->ms_last = ms_now;
+
 }
 
 void window_redraw(Window *w) {

@@ -9,7 +9,7 @@ struct Window {
     SDL_Window *window;
     SDL_GLContext context;
     
-    DrawContext *draw_context;
+    DrawContext *draw_context; // For resizing.
 
     int width,
         height;
@@ -30,8 +30,8 @@ struct Window {
             mouse_right;
     } input;
 
-    void (*resize_callback)(void *arg, int width, int height);
-    void *resize_callback_arg;
+    Uint32 ms_last;
+    float dt; // In seconds.
 
 };
 typedef struct Window Window;

@@ -4,7 +4,7 @@
 
 void text_init(Text *text,
                Font *font,
-               const char *str, float x, float y, TextAlignment alignment,
+               const char *str, TextAlignment alignment,
                GLuint program, int viewport_width, int viewport_height) {
 
     assert(text != NULL);
@@ -33,8 +33,10 @@ void text_init(Text *text,
     //hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(font->hb_buffer, &glyph_count);
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(font->hb_buffer, &glyph_count);
 
-    const float scale_x = 2.0f / (64 * viewport_width);
-    const float scale_y = 2.0f / (64 * viewport_height);
+    const float scale = 2.0f / (64 * viewport_width);
+
+    float x = 0.0f,
+          y = 0.0f;
 
     // Adjust x based on the alignment.
     if (alignment != TEXT_ALIGN_LEFT) {
@@ -49,7 +51,7 @@ void text_init(Text *text,
                 continue;
             }
 
-            width += glyph_pos[i].x_advance * scale_x;
+            width += glyph_pos[i].x_advance * scale;
         }
 
         if      (alignment == TEXT_ALIGN_CENTER) x -= width/2;
@@ -74,10 +76,10 @@ void text_init(Text *text,
 
             float *buf = &buffer[buffer_i*24];
 
-            const float x1 = x + (glyph_pos[i].x_offset + gi->metrics.horiBearingX) * scale_x;
-            const float x2 = x1 + gi->metrics.width * scale_x;
-            const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)*scale_y;
-            const float y2 = y1 + gi->metrics.height * scale_y;
+            const float x1 = x + (glyph_pos[i].x_offset + gi->metrics.horiBearingX) * scale;
+            const float x2 = x1 + gi->metrics.width * scale;
+            const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)*scale;
+            const float y2 = y1 + gi->metrics.height * scale;
 
             // Vertices --                  UV coordinates --
             buf[ 0] = x1;   buf[ 1] = y1;   buf[ 2] = gi->u1;    buf[ 3] = gi->v1;
@@ -91,8 +93,8 @@ void text_init(Text *text,
             buffer_i++;
         }
 
-        x += glyph_pos[i].x_advance * scale_x;
-        y -= glyph_pos[i].y_advance * scale_y;
+        x += glyph_pos[i].x_advance * scale;
+        y -= glyph_pos[i].y_advance * scale;
     }
 
     text->buffer_len = buffer_i * glyph_size;

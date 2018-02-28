@@ -24,8 +24,9 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
     catalog_add(&dc->catalog, dc->text_shader.frag_path, shader_program_reload, &dc->text_shader);
 
     // Uniforms.
-    dc->u_texture = gl_get_uniform(dc->text_shader.gl_program, "texture");
-    dc->u_color = gl_get_uniform(dc->text_shader.gl_program, "color");
+    dc->u_texture   = gl_get_uniform(dc->text_shader.gl_program, "texture");
+    dc->u_color     = gl_get_uniform(dc->text_shader.gl_program, "color");
+    dc->u_transform = gl_get_uniform(dc->text_shader.gl_program, "transform");
 
     // FreeType and our font.
     if (FT_Init_FreeType(&dc->ft)) DEBUG("FT_Init_FreeType failed.");
@@ -78,13 +79,20 @@ void draw_string(DrawContext *dc, const char *str, float x, float y, TextAlignme
     assert(str != NULL);
 
     Text text;
-    text_init(&text, &dc->font, str, x, y, alignment,
+    text_init(&text, &dc->font, str, alignment,
               dc->text_shader.gl_program, dc->width, dc->height);
+
+    const GLfloat transform[9] = {
+        1.0f,       0.0f,    x,
+        0.0f, dc->aspect,    y,
+        0.0f,       0.0f, 1.0f
+    };
 
     glUseProgram(dc->text_shader.gl_program);
     glBindVertexArray(text.vao);
     glUniform4f(dc->u_color, 0.1f, 0.8f, 0.9f, 1.0f);
     glUniform1i(dc->u_texture, 0);
+    glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
     glDrawArrays(GL_TRIANGLES, 0, text.buffer_len/(4*sizeof(float)));
 
     text_destroy(&text);

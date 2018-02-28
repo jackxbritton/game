@@ -21,6 +21,9 @@ int main(int argc, char *argv[]) {
     window.draw_context = &dc;
     draw_resize(&dc, window.width, window.height);
 
+    float x = 0.0f,
+          y = 0.0f;
+
     while (1) {
 
         window_update(&window);
@@ -28,21 +31,17 @@ int main(int argc, char *argv[]) {
 
         catalog_service(&dc.catalog); // Make sure we hotload stuff.
 
+        const float speed = 0.5f;
+        y -= window.input.down  * speed * window.dt;
+        y += window.input.up    * speed * window.dt;
+        x -= window.input.left  * speed * window.dt;
+        x += window.input.right * speed * window.dt;
+
         draw_clear(&dc);
 
-        //if (window.input.up)         draw_string(&dc, "up");
-        //if (window.input.down)       draw_string(&dc, "down");
-        //if (window.input.left)       draw_string(&dc, "left");
-        //if (window.input.right)      draw_string(&dc, "right");
-        //if (window.input.mouse_left) draw_string(&dc, "mouse");
-
         char buffer[64];
-
-        snprintf(buffer, 64, "%dx%d", window.input.mouse_x, window.input.mouse_y);
-        draw_string(&dc, buffer, 0.0f, 0.0f, TEXT_ALIGN_CENTER);
-
-        snprintf(buffer, 64, "quite!", window.input.mouse_x, window.input.mouse_y);
-        draw_string(&dc, buffer, 0.0f, -0.7f, TEXT_ALIGN_CENTER);
+        snprintf(buffer, 64, "(%1.2f, %1.2f)", x, y);
+        draw_string(&dc, buffer, x, y, TEXT_ALIGN_CENTER);
 
         window_redraw(&window);
 

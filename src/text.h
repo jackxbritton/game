@@ -17,9 +17,8 @@ enum TextAlignment {
 };
 typedef enum TextAlignment TextAlignment;
 
-void text_init(Text *text,
-               Font *font,
-               const char *str, float x, float y, TextAlignment alignment,
+void text_init(Text *text, Font *font,
+               const char *str, TextAlignment alignment,
                GLuint program, int viewport_width, int viewport_height);
 void text_destroy(Text *text);
 
