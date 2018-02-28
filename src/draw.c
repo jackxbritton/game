@@ -79,21 +79,33 @@ void draw_string(DrawContext *dc, const char *str, float x, float y, TextAlignme
     assert(str != NULL);
 
     Text text;
-    text_init(&text, &dc->font, str, alignment,
-              dc->text_shader.gl_program, dc->width, dc->height);
+    text_init(&text, &dc->font, str, dc->text_shader.gl_program, dc->width, dc->height);
 
-    const GLfloat transform[9] = {
+    draw_text(dc, &text, x, y, alignment);
+
+    text_destroy(&text);
+}
+
+void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alignment) {
+
+    assert(dc != NULL);
+    assert(text != NULL);
+
+    if (alignment != TEXT_ALIGN_LEFT) {
+        if      (alignment == TEXT_ALIGN_CENTER) x -= text->width/2;
+        else if (alignment == TEXT_ALIGN_RIGHT)  x -= text->width;
+    }
+
+    const GLfloat transform[] = {
         1.0f,       0.0f,    x,
         0.0f, dc->aspect,    y,
         0.0f,       0.0f, 1.0f
     };
 
     glUseProgram(dc->text_shader.gl_program);
-    glBindVertexArray(text.vao);
+    glBindVertexArray(text->vao);
     glUniform4f(dc->u_color, 0.1f, 0.8f, 0.9f, 1.0f);
     glUniform1i(dc->u_texture, 0);
     glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
-    glDrawArrays(GL_TRIANGLES, 0, text.buffer_len/(4*sizeof(float)));
-
-    text_destroy(&text);
+    glDrawArrays(GL_TRIANGLES, 0, text->buffer_len/(4*sizeof(float)));
 }

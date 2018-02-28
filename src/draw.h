@@ -32,6 +32,14 @@ void draw_resize(DrawContext *dc, int width, int height);
 
 void draw_clear(DrawContext *dc);
 
+enum TextAlignment {
+    TEXT_ALIGN_LEFT,
+    TEXT_ALIGN_CENTER,
+    TEXT_ALIGN_RIGHT
+};
+typedef enum TextAlignment TextAlignment;
+
 void draw_string(DrawContext *dc, const char *str, float x, float y, TextAlignment alignment);
+void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alignment);
 
 #endif

@@ -7,18 +7,12 @@
 struct Text {
     GLuint vao, vbo;
     size_t buffer_len;
+    float width,
+          height;
 };
 typedef struct Text Text;
 
-enum TextAlignment {
-    TEXT_ALIGN_LEFT,
-    TEXT_ALIGN_CENTER,
-    TEXT_ALIGN_RIGHT
-};
-typedef enum TextAlignment TextAlignment;
-
-void text_init(Text *text, Font *font,
-               const char *str, TextAlignment alignment,
+void text_init(Text *text, Font *font, const char *str,
                GLuint program, int viewport_width, int viewport_height);
 void text_destroy(Text *text);
 

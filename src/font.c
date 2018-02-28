@@ -32,8 +32,6 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
     // First, find the width and height of the texture map.
     // We're storing all the chars in one long row.
 
-    const int gap = 4; // TODO
-
     int width = 0,
         height = 0;
 
@@ -49,7 +47,7 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
         if (g->bitmap.width == 0 && g->bitmap.rows == 0) continue;
 
         // Update width and height.
-        width += g->bitmap.width + gap;
+        width += g->bitmap.width;
         if (height < g->bitmap.rows) height = g->bitmap.rows;
     }
 
@@ -100,7 +98,7 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
         gi->v1 = 1.0f - (g->bitmap.rows - 0.5f) / height;
         gi->v2 = 1.0f - 0.5f/height;
 
-        x += g->bitmap.width + gap;
+        x += g->bitmap.width;
 
     }
 
@@ -143,4 +141,11 @@ void font_destroy(Font *font) {
     //free(font->gl_buffer);
 
     FT_Done_Face(font->face);
+}
+
+int font_contains_char(Font *font, char c) {
+    //if (c == '\n') return 1;
+    if (c >= font->start && c <= font->end) return 1;
+    DEBUG("Character '%c' is outside of glyph range '%c'-'%c'.", c, font->start, font->end);
+    return 0;
 }

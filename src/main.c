@@ -34,6 +34,9 @@ int main(int argc, char *argv[]) {
     Average average;
     average_init(&average, 64);
 
+    Text fps_text;
+    text_init(&fps_text, &dc.font, "-", dc.text_shader.gl_program, dc.width, dc.height);
+
     while (1) {
 
         window_update(&window);
@@ -49,21 +52,28 @@ int main(int argc, char *argv[]) {
 
         average_add(&average, 1.0f / window.dt);
 
+        char buffer[64];
+
         if (window.elapsed_ms - update_fps_every > last_fps_update) {
+
             last_fps_update = window.elapsed_ms;
             fps = average_calc(&average);
+            
+            // Update text.
+            snprintf(buffer, 64, "[%3.1f]", fps);
+            text_destroy(&fps_text);
+            text_init(&fps_text, &dc.font, buffer, dc.text_shader.gl_program, dc.width, dc.height);
+
         }
 
         draw_clear(&dc);
 
         // Moving text.
-        char buffer[64];
         snprintf(buffer, 64, "(%1.2f, %1.2f)", x, y);
         draw_string(&dc, buffer, x, y, TEXT_ALIGN_CENTER);
 
         // FPS average.
-        snprintf(buffer, 64, "[%3.1f]", fps);
-        draw_string(&dc, buffer, -1.0f + 0.1f, -1.0f + 0.1f*aspect, TEXT_ALIGN_LEFT);
+        draw_text(&dc, &fps_text, -1.0f + 0.1f, -1.0f + 0.1f*aspect, TEXT_ALIGN_LEFT);
 
         window_redraw(&window);
 

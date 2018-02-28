@@ -2,9 +2,7 @@
 #include "misc.h"
 #include <assert.h>
 
-void text_init(Text *text,
-               Font *font,
-               const char *str, TextAlignment alignment,
+void text_init(Text *text, Font *font, const char *str, 
                GLuint program, int viewport_width, int viewport_height) {
 
     assert(text != NULL);
@@ -35,29 +33,10 @@ void text_init(Text *text,
 
     const float scale = 2.0f / (64 * viewport_width);
 
+    // Calculate text width.
+
     float x = 0.0f,
           y = 0.0f;
-
-    // Adjust x based on the alignment.
-    if (alignment != TEXT_ALIGN_LEFT) {
-
-        float width = 0.0f;
-
-        for (int i = 0; i < len; i++) {
-
-            const char c = str[i];
-            if (c < font->start || c > font->end) {
-                DEBUG("Character '%c' is outside of glyph range '%c'-'%c'.", c, font->start, font->end);
-                continue;
-            }
-
-            width += glyph_pos[i].x_advance * scale;
-        }
-
-        if      (alignment == TEXT_ALIGN_CENTER) x -= width/2;
-        else if (alignment == TEXT_ALIGN_RIGHT)  x -= width;
-
-    }
 
     // Fill the buffer.
 
@@ -66,10 +45,8 @@ void text_init(Text *text,
     for (int i = 0; i < len; i++) {
 
         const char c = str[i];
-        if (c < font->start || c > font->end) {
-            DEBUG("Character '%c' is outside of glyph range '%c'-'%c'.", c, font->start, font->end);
-            continue;
-        }
+        if (!font_contains_char(font, c)) continue;
+
         const GlyphInfo *gi = &font->glyph_info[c-font->start];
 
         if (gi->metrics.width > 0 && gi->metrics.height > 0) {
@@ -96,6 +73,9 @@ void text_init(Text *text,
         x += glyph_pos[i].x_advance * scale;
         y -= glyph_pos[i].y_advance * scale;
     }
+
+    text->width = x;
+    text->height = font->face->size->metrics.height * scale;
 
     text->buffer_len = buffer_i * glyph_size;
 
