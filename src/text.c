@@ -2,8 +2,7 @@
 #include "misc.h"
 #include <assert.h>
 
-void text_init(Text *text, Font *font, const char *str, 
-               GLuint program, int viewport_width, int viewport_height) {
+void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     assert(text != NULL);
     assert(font != NULL);
@@ -40,10 +39,22 @@ void text_init(Text *text, Font *font, const char *str,
 
     int buffer_i = 0;
 
+    float xi = x;
+    text->width = 0.0f;
+    text->height = font->face->size->metrics.height/64;
+
     for (int i = 0; i < len; i++) {
 
         const char c = str[i];
         if (!font_contains_char(font, c)) continue;
+
+        if (c == '\n') {
+            if (x - xi > text->width) text->width = x - xi;
+            xi = x;
+            y -= font->face->size->metrics.height/64;
+            text->height += font->face->size->metrics.height/64;
+            continue;
+        }
 
         const GlyphInfo *gi = &font->glyph_info[c-font->start];
 
@@ -51,7 +62,7 @@ void text_init(Text *text, Font *font, const char *str,
 
             float *buf = &buffer[buffer_i*24];
 
-            const float x1 = x + (glyph_pos[i].x_offset + gi->metrics.horiBearingX)/64;
+            const float x1 = xi + (glyph_pos[i].x_offset + gi->metrics.horiBearingX)/64;
             const float x2 = x1 + gi->metrics.width/64;
             const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)/64;
             const float y2 = y1 + gi->metrics.height/64;
@@ -68,12 +79,11 @@ void text_init(Text *text, Font *font, const char *str,
             buffer_i++;
         }
 
-        x += glyph_pos[i].x_advance/64;
+        xi += glyph_pos[i].x_advance/64;
         y -= glyph_pos[i].y_advance/64;
     }
 
-    text->width = x;
-    text->height = font->face->size->metrics.height/64;
+    if (x - xi > text->width) text->width = x - xi;
 
     text->buffer_len = buffer_i * glyph_size;
 

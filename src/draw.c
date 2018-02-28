@@ -33,7 +33,7 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
     font_init(&dc->font,
               &dc->ft,
               "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-              72, (int) hdpi, (int) vdpi);
+              24, (int) hdpi, (int) vdpi);
 
     // Set texture units.
     glBindTextureUnit(0, dc->font.gl_texture);
@@ -79,7 +79,7 @@ void draw_string(DrawContext *dc, const char *str, float x, float y, TextAlignme
     assert(str != NULL);
 
     Text text;
-    text_init(&text, &dc->font, str, dc->text_shader.gl_program, dc->width, dc->height);
+    text_init(&text, &dc->font, str, dc->text_shader.gl_program);
 
     draw_text(dc, &text, x, y, alignment);
 

@@ -12,8 +12,7 @@ struct Text {
 };
 typedef struct Text Text;
 
-void text_init(Text *text, Font *font, const char *str,
-               GLuint program, int viewport_width, int viewport_height);
+void text_init(Text *text, Font *font, const char *str, GLuint program);
 void text_destroy(Text *text);
 
 #endif

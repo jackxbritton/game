@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     average_init(&average, 64);
 
     Text fps_text;
-    text_init(&fps_text, &dc.font, "-", dc.text_shader.gl_program, dc.width, dc.height);
+    text_init(&fps_text, &dc.font, "-", dc.text_shader.gl_program);
 
     Text static_text;
     const char *static_str = "This field represents a default line spacing\n"
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
                              "also no guarantee that no glyphs extend above or\n"
                              "below subsequent baselines when using this distance -\n"
                              "think of it as a value the designer of the font finds appropriate.";
-    text_init(&static_text, &dc.font, static_str, dc.text_shader.gl_program, dc.width, dc.height);
+    text_init(&static_text, &dc.font, static_str, dc.text_shader.gl_program);
 
     while (1) {
 
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
             // Update text.
             snprintf(buffer, 64, "[%3.1f]", fps);
             text_destroy(&fps_text);
-            text_init(&fps_text, &dc.font, buffer, dc.text_shader.gl_program, dc.width, dc.height);
+            text_init(&fps_text, &dc.font, buffer, dc.text_shader.gl_program);
 
         }
 
@@ -87,7 +87,8 @@ int main(int argc, char *argv[]) {
         draw_text(&dc, &fps_text, -1.0f + 0.1f, -1.0f + 0.1f*aspect, TEXT_ALIGN_LEFT);
 
         // Static text.
-        draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f - static_text.height*2.0f/dc.width*aspect, TEXT_ALIGN_LEFT);
+        //draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f - static_text.height*2.0f/dc.width*aspect, TEXT_ALIGN_LEFT);
+        draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f, TEXT_ALIGN_RIGHT);
 
         window_redraw(&window);
 
