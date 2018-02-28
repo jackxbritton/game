@@ -91,15 +91,17 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
     assert(dc != NULL);
     assert(text != NULL);
 
+    const float s = 2.0f / dc->width;
+
     if (alignment != TEXT_ALIGN_LEFT) {
-        if      (alignment == TEXT_ALIGN_CENTER) x -= text->width/2;
-        else if (alignment == TEXT_ALIGN_RIGHT)  x -= text->width;
+        if      (alignment == TEXT_ALIGN_CENTER) x -= text->width*s/2;
+        else if (alignment == TEXT_ALIGN_RIGHT)  x -= text->width*s;
     }
 
     const GLfloat transform[] = {
-        1.0f,       0.0f,    x,
-        0.0f, dc->aspect,    y,
-        0.0f,       0.0f, 1.0f
+           s,         0.0f,    x,
+        0.0f, s*dc->aspect,    y,
+        0.0f,         0.0f, 1.0f
     };
 
     glUseProgram(dc->text_shader.gl_program);

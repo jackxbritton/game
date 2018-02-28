@@ -79,6 +79,7 @@ int main(int argc, char *argv[]) {
 
     }
 
+    text_destroy(&fps_text);
     draw_context_destroy(&dc);
     window_destroy(&window);
 
