@@ -31,6 +31,6 @@ void draw_resize(DrawContext *dc, int width, int height);
 
 void draw_clear(DrawContext *dc);
 
-void draw_string(DrawContext *dc, const char *str, TextAlignment alignment);
+void draw_string(DrawContext *dc, const char *str, float x, float y, TextAlignment alignment);
 
 #endif

@@ -37,8 +37,12 @@ int main(int argc, char *argv[]) {
         //if (window.input.mouse_left) draw_string(&dc, "mouse");
 
         char buffer[64];
-        snprintf(buffer, 64, "%dx%d, %dx%d", window.width, window.height, dc.width, dc.height);
-        draw_string(&dc, buffer, TEXT_ALIGN_CENTER);
+
+        snprintf(buffer, 64, "%dx%d", window.input.mouse_x, window.input.mouse_y);
+        draw_string(&dc, buffer, 0.0f, 0.0f, TEXT_ALIGN_CENTER);
+
+        snprintf(buffer, 64, "quite!", window.input.mouse_x, window.input.mouse_y);
+        draw_string(&dc, buffer, 0.0f, -0.7f, TEXT_ALIGN_CENTER);
 
         window_redraw(&window);
 
