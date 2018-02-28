@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     float fps = 0.0f;
 
     Average average;
-    average_init(&average, 64);
+    average_init(&average, 32);
 
     Text fps_text;
     text_init(&fps_text, &dc.font, "-", dc.text_shader.gl_program);

@@ -1,6 +1,7 @@
 #include "font.h"
 #include "misc.h"
 #include <assert.h>
+#include "sprite.h"
 
 void font_init(Font *font, FT_Library *ft, const char *filename, int point_size, int hdpi, int vdpi) {
 
@@ -122,7 +123,7 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
         return;
     }
 
-    sprite_batch_init(&font->sprite_batch);
+    array_init(&font->sprite_batch, 64, sizeof(Sprite));
 
 }
 
@@ -136,7 +137,7 @@ void font_destroy(Font *font) {
     //hb_ft_font_destroy(font->hb_font);
     hb_buffer_destroy(font->hb_buffer);
 
-    sprite_batch_destroy(&font->sprite_batch);
+    array_destroy(&font->sprite_batch);
 
     FT_Done_Face(font->face);
 }

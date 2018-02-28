@@ -6,7 +6,7 @@
 #include FT_FREETYPE_H
 #include <harfbuzz/hb.h>
 #include <harfbuzz/hb-ft.h>
-#include "sprite.h"
+#include "misc.h"
 
 struct GlyphInfo {
     float u1, v1,
@@ -31,7 +31,8 @@ struct Font {
     hb_face_t *hb_face;
     hb_buffer_t *hb_buffer;
 
-    SpriteBatch sprite_batch;
+    //SpriteBatch sprite_batch;
+    Array sprite_batch;
 
 };
 typedef struct Font Font;

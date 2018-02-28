@@ -37,8 +37,10 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     // Fill the buffer.
 
-    SpriteBatch *sb = &font->sprite_batch;
-    sprite_batch_clear(sb);
+    //SpriteBatch *sb = &font->sprite_batch;
+    //sprite_batch_clear(sb);
+    Array *array = &font->sprite_batch;
+    array_clear(array);
 
     float xi = x;
     text->width = 0.0f;
@@ -70,7 +72,8 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
             Sprite s;
             sprite_init(&s, x1, y1, x2, y2, gi->u1, gi->v1, gi->u2, gi->v2);
-            sprite_batch_add(sb, &s);
+            array_add(array, &s);
+            //sprite_batch_add(sb, &s);
         }
 
         xi += glyph_pos[i].x_advance/64;
@@ -79,14 +82,15 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     if (x - xi > text->width) text->width = x - xi;
 
-    text->buffer_len = sb->sprites_count*sizeof(Sprite);
+    //text->buffer_len = sb->sprites_count*sizeof(Sprite);
+    text->buffer_len = array->count*sizeof(Sprite);
 
     // Generate vbo.
     glGenVertexArrays(1, &text->vao);
     glBindVertexArray(text->vao);
     glGenBuffers(1, &text->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, text->vbo);
-    glBufferData(GL_ARRAY_BUFFER, text->buffer_len, sb->sprites, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, text->buffer_len, array->buffer, GL_STREAM_DRAW);
 
     // Attrib pointers.
     glVertexAttribPointer(
