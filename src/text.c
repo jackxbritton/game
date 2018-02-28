@@ -2,7 +2,10 @@
 #include "misc.h"
 #include <assert.h>
 
-void text_init(Text *text, Font *font, const char *str, GLuint program, int width, int height) {
+void text_init(Text *text,
+               Font *font,
+               const char *str, float x, float y, TextAlignment alignment,
+               GLuint program, int viewport_width, int viewport_height) {
 
     assert(text != NULL);
     assert(font != NULL);
@@ -30,23 +33,40 @@ void text_init(Text *text, Font *font, const char *str, GLuint program, int widt
     //hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(font->hb_buffer, &glyph_count);
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(font->hb_buffer, &glyph_count);
 
+    const float scale_x = 2.0f / (64 * viewport_width);
+    const float scale_y = 2.0f / (64 * viewport_height);
+
+    // Adjust x based on the alignment.
+    if (alignment != TEXT_ALIGN_LEFT) {
+
+        float width = 0.0f;
+
+        for (int i = 0; i < len; i++) {
+
+            const char c = str[i];
+            if (c < font->start || c > font->end) {
+                DEBUG("Character '%c' is outside of glyph range '%c'-'%c'.", c, font->start, font->end);
+                continue;
+            }
+
+            width += glyph_pos[i].x_advance * scale_x;
+        }
+
+        if      (alignment == TEXT_ALIGN_CENTER) x -= width/2;
+        else if (alignment == TEXT_ALIGN_RIGHT)  x -= width;
+
+    }
+
     // Fill the buffer.
 
-    const float scale_x = 2.0f / (64 * width);
-    const float scale_y = 2.0f / (64 * height);
-
-    float x = -1.0f,
-          y = 0.0f;
     int buffer_i = 0;
-    //text->width = 0.0; // Note: these don't scale.
-    //text->height = 0.0;
 
     for (int i = 0; i < len; i++) {
 
         const char c = str[i];
         if (c < font->start || c > font->end) {
             DEBUG("Character '%c' is outside of glyph range '%c'-'%c'.", c, font->start, font->end);
-            return;
+            continue;
         }
         const GlyphInfo *gi = &font->glyph_info[c-font->start];
 
@@ -58,9 +78,6 @@ void text_init(Text *text, Font *font, const char *str, GLuint program, int widt
             const float x2 = x1 + gi->metrics.width * scale_x;
             const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)*scale_y;
             const float y2 = y1 + gi->metrics.height * scale_y;
-
-            //text->width += x2 - x1;
-            //if (text->height < y2 - y1) text->height = y2 - y1;
 
             // Vertices --                  UV coordinates --
             buf[ 0] = x1;   buf[ 1] = y1;   buf[ 2] = gi->u1;    buf[ 3] = gi->v1;

@@ -1,7 +1,6 @@
 #include "draw.h"
 #include "misc.h"
 #include <assert.h>
-#include "text.h"
 
 static GLint gl_get_uniform(GLuint program, const char *id) {
     GLint out = glGetUniformLocation(program, id);
@@ -73,13 +72,14 @@ void draw_clear(DrawContext *dc) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void draw_string(DrawContext *dc, const char *str) {
+void draw_string(DrawContext *dc, const char *str, TextAlignment alignment) {
 
     assert(dc != NULL);
     assert(str != NULL);
 
     Text text;
-    text_init(&text, &dc->font, str, dc->text_shader.gl_program, dc->width, dc->height);
+    text_init(&text, &dc->font, str, 0.0f, 0.0f, alignment,
+              dc->text_shader.gl_program, dc->width, dc->height);
 
     glUseProgram(dc->text_shader.gl_program);
     glBindVertexArray(text.vao);

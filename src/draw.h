@@ -3,6 +3,7 @@
 
 #include "shader_program.h"
 #include "font.h"
+#include "text.h"
 #include "catalog.h"
 
 struct DrawContext {
@@ -30,6 +31,6 @@ void draw_resize(DrawContext *dc, int width, int height);
 
 void draw_clear(DrawContext *dc);
 
-void draw_string(DrawContext *dc, const char *str);
+void draw_string(DrawContext *dc, const char *str, TextAlignment alignment);
 
 #endif

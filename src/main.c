@@ -30,15 +30,15 @@ int main(int argc, char *argv[]) {
 
         draw_clear(&dc);
 
-        if (window.input.up)         draw_string(&dc, "up");
-        if (window.input.down)       draw_string(&dc, "down");
-        if (window.input.left)       draw_string(&dc, "left");
-        if (window.input.right)      draw_string(&dc, "right");
-        if (window.input.mouse_left) draw_string(&dc, "mouse");
+        //if (window.input.up)         draw_string(&dc, "up");
+        //if (window.input.down)       draw_string(&dc, "down");
+        //if (window.input.left)       draw_string(&dc, "left");
+        //if (window.input.right)      draw_string(&dc, "right");
+        //if (window.input.mouse_left) draw_string(&dc, "mouse");
 
         char buffer[64];
         snprintf(buffer, 64, "%dx%d, %dx%d", window.width, window.height, dc.width, dc.height);
-        draw_string(&dc, buffer);
+        draw_string(&dc, buffer, TEXT_ALIGN_CENTER);
 
         window_redraw(&window);
 

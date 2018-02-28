@@ -10,7 +10,17 @@ struct Text {
 };
 typedef struct Text Text;
 
-void text_init(Text *text, Font *font, const char *str, GLuint program, int width, int height);
+enum TextAlignment {
+    TEXT_ALIGN_LEFT,
+    TEXT_ALIGN_CENTER,
+    TEXT_ALIGN_RIGHT
+};
+typedef enum TextAlignment TextAlignment;
+
+void text_init(Text *text,
+               Font *font,
+               const char *str, float x, float y, TextAlignment alignment,
+               GLuint program, int viewport_width, int viewport_height);
 void text_destroy(Text *text);
 
 #endif
