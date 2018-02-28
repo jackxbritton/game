@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
             fps = average_calc(&average);
             
             // Update text.
-            snprintf(buffer, 64, "[%3.1f]", fps);
+            snprintf(buffer, 64, "[%5.1f]", fps);
             text_destroy(&fps_text);
             text_init(&fps_text, &dc.font, buffer, dc.text_shader.gl_program);
 

@@ -37,8 +37,10 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     // Fill the buffer.
 
-    //SpriteBatch *sb = &font->sprite_batch;
-    //sprite_batch_clear(sb);
+    // TODO
+    // Check array->allocated, maybe we can skip a bunch of ifs (from array_add).
+    // Pass the array as an argument, instead of using the one from font.
+
     Array *array = &font->sprite_batch;
     array_clear(array);
 
@@ -73,7 +75,6 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
             Sprite s;
             sprite_init(&s, x1, y1, x2, y2, gi->u1, gi->v1, gi->u2, gi->v2);
             array_add(array, &s);
-            //sprite_batch_add(sb, &s);
         }
 
         xi += glyph_pos[i].x_advance/64;
@@ -82,8 +83,7 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     if (x - xi > text->width) text->width = x - xi;
 
-    //text->buffer_len = sb->sprites_count*sizeof(Sprite);
-    text->buffer_len = array->count*sizeof(Sprite);
+    text->buffer_len = array->count * sizeof(Sprite);
 
     // Generate vbo.
     glGenVertexArrays(1, &text->vao);

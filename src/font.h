@@ -6,7 +6,7 @@
 #include FT_FREETYPE_H
 #include <harfbuzz/hb.h>
 #include <harfbuzz/hb-ft.h>
-#include "misc.h"
+#include "array.h"
 
 struct GlyphInfo {
     float u1, v1,

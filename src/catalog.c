@@ -15,24 +15,17 @@ void catalog_init(Catalog *c) {
         return;
     }
 
-    // Allocate table.
-    c->table_allocated = 4;
-    c->table = malloc(c->table_allocated * sizeof(CatalogEntry));
-    if (c->table == NULL) {
-        close(c->fd);
-        DEBUG("malloc failed.");
-        return;
-    }
-    c->table_count = 0;
+    array_init(&c->table, 4, sizeof(CatalogEntry));
 }
 
 void catalog_destroy(Catalog *c) {
     int i;
     assert(c != NULL);
-    for (i = 0; i < c->table_count; i++) {
-        inotify_rm_watch(c->fd, c->table[i].wd);
+    for (i = 0; i < c->table.count; i++) {
+        CatalogEntry *entry = array_get(&c->table, i);
+        inotify_rm_watch(c->fd, entry->wd);
     }
-    free(c->table);
+    array_destroy(&c->table);
     close(c->fd);
 }
 
@@ -41,28 +34,16 @@ void catalog_add(Catalog *c, const char *filename, void (*callback)(), void *cal
     assert(c != NULL);
     assert(callback != NULL);
 
-    // Resize array?
-    if (c->table_count == c->table_allocated) {
-        c->table_allocated *= 2;
-        errno = 0;
-        c->table = realloc(c->table, c->table_allocated*sizeof(CatalogEntry));
-        if (errno == ENOMEM) {
-            DEBUG("realloc failed.");
-            return;
-        }
-    }
-
-    CatalogEntry *entry = &c->table[c->table_count];
-    c->table_count++;
-
-    entry->wd = inotify_add_watch(c->fd, filename, IN_CLOSE_WRITE);
-    if (entry->wd == -1) {
+    CatalogEntry entry;
+    entry.wd = inotify_add_watch(c->fd, filename, IN_CLOSE_WRITE);
+    if (entry.wd == -1) {
         DEBUG("inotify_add_watch failed for '%s'.", filename);
         return;
     }
+    entry.callback     = callback;
+    entry.callback_arg = callback_arg;
 
-    entry->callback     = callback;
-    entry->callback_arg = callback_arg;
+    array_add(&c->table, &entry);
 
 }
 
@@ -86,11 +67,13 @@ void catalog_service(Catalog *c) {
         event = (struct inotify_event *) &buffer[i];
 
         // Find the entry.
-        for (j = 0; j < c->table_count; j++) {
-            if (c->table[j].wd != event->wd) continue;
+        for (j = 0; j < c->table.count; j++) {
+
+            CatalogEntry *entry = array_get(&c->table, j);
+            if (event->wd != entry->wd) continue;
 
             // Found.
-            c->table[j].callback(c->table[j].callback_arg);
+            entry->callback(entry->callback_arg);
 
             break;
         }

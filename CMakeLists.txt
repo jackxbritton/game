@@ -9,6 +9,7 @@ set(BIN game)
 project(${BIN})
 add_executable(${BIN} src/main.c
                       src/misc.c
+                      src/array.c
                       src/window.c
                       src/shader_program.c
                       src/texture.c

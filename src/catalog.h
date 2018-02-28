@@ -3,6 +3,7 @@
 
 #include <sys/inotify.h>
 #include <unistd.h>
+#include "array.h"
 
 struct CatalogEntry {
     int wd;
@@ -15,9 +16,7 @@ struct Catalog {
 
     int fd;
 
-    CatalogEntry *table;
-    size_t table_allocated,
-           table_count;
+    Array table;
 
 };
 typedef struct Catalog Catalog;
