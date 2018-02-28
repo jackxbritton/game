@@ -24,8 +24,6 @@ void catalog_init(Catalog *c) {
         return;
     }
     c->table_count = 0;
-
-    return;
 }
 
 void catalog_destroy(Catalog *c) {
@@ -65,8 +63,6 @@ void catalog_add(Catalog *c, const char *filename, void (*callback)(), void *cal
 
     entry->callback     = callback;
     entry->callback_arg = callback_arg;
-
-    return;
 
 }
 

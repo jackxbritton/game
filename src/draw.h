@@ -11,6 +11,8 @@ struct DrawContext {
     float aspect;
     int width,
         height;
+    float hdpi,
+          vdpi;
 
     ShaderProgram text_shader;
     GLint u_texture,

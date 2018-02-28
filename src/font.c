@@ -122,9 +122,7 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
         return;
     }
 
-    // GL buffer (for text objects).
-    //font->gl_buffer_allocated = 256;
-    //font->gl_buffer = malloc(font->gl_buffer_allocated * 24*sizeof(float));
+    sprite_batch_init(&font->sprite_batch);
 
 }
 
@@ -138,13 +136,14 @@ void font_destroy(Font *font) {
     //hb_ft_font_destroy(font->hb_font);
     hb_buffer_destroy(font->hb_buffer);
 
-    //free(font->gl_buffer);
+    sprite_batch_destroy(&font->sprite_batch);
 
     FT_Done_Face(font->face);
 }
 
 int font_contains_char(Font *font, char c) {
     if (c == '\n') return 1;
+    if (c == '\t') return 1;
     if (c >= font->start && c <= font->end) return 1;
     DEBUG("Character '%c' is outside of glyph range '%c'-'%c'.", c, font->start, font->end);
     return 0;

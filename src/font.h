@@ -6,6 +6,7 @@
 #include FT_FREETYPE_H
 #include <harfbuzz/hb.h>
 #include <harfbuzz/hb-ft.h>
+#include "sprite.h"
 
 struct GlyphInfo {
     float u1, v1,
@@ -30,8 +31,7 @@ struct Font {
     hb_face_t *hb_face;
     hb_buffer_t *hb_buffer;
 
-    //float *gl_buffer; // For use by text objects when loading glyph vertices into OpenGL.
-    //size_t gl_buffer_allocated;
+    SpriteBatch sprite_batch;
 
 };
 typedef struct Font Font;

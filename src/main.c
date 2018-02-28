@@ -37,15 +37,9 @@ int main(int argc, char *argv[]) {
     text_init(&fps_text, &dc.font, "-", dc.text_shader.gl_program);
 
     Text static_text;
-    const char *static_str = "This field represents a default line spacing\n"
-                             "(i.e., the baseline-to-baseline distance) when\n"
-                             "writing text with this font. Note that it\n"
-                             "usually is larger than the sum of the ascender\n"
-                             "and descender taken as absolute values. There is\n"
-                             "also no guarantee that no glyphs extend above or\n"
-                             "below subsequent baselines when using this distance -\n"
-                             "think of it as a value the designer of the font finds appropriate.";
-    text_init(&static_text, &dc.font, static_str, dc.text_shader.gl_program);
+    char *str = load_entire_file("Makefile");
+    text_init(&static_text, &dc.font, str, dc.text_shader.gl_program);
+    free(str);
 
     while (1) {
 
@@ -54,7 +48,7 @@ int main(int argc, char *argv[]) {
 
         catalog_service(&dc.catalog); // Make sure we hotload stuff.
 
-        const float speed = 1.0f;
+        const float speed = 2.0f;
         y -= window.input.down  * speed*dc.aspect * window.dt;
         y += window.input.up    * speed*dc.aspect * window.dt;
         x -= window.input.left  * speed * window.dt;
@@ -79,7 +73,7 @@ int main(int argc, char *argv[]) {
         draw_clear(&dc);
 
         // Static text.
-        glUniform4f(dc.u_color, 0.8f, 0.3f, 0.3f, 1.0f);
+        glUniform4f(dc.u_color, 0.8f, 0.3f, 0.3f, 0.4f);
         draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f, TEXT_ALIGN_RIGHT);
 
         // FPS average.

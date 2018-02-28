@@ -16,8 +16,8 @@ struct Catalog {
     int fd;
 
     CatalogEntry *table;
-    size_t table_allocated;
-    size_t table_count;
+    size_t table_allocated,
+           table_count;
 
 };
 typedef struct Catalog Catalog;

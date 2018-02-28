@@ -13,6 +13,9 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
     assert(dc != NULL);
 
     dc->aspect = aspect;
+    dc->hdpi   = hdpi;
+    dc->vdpi   = vdpi;
+    dc->aspect = aspect;
 
     catalog_init(&dc->catalog);
 
@@ -33,14 +36,15 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
     font_init(&dc->font,
               &dc->ft,
               "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-              48, (int) hdpi, (int) vdpi);
+              72, (int) dc->hdpi, (int) dc->vdpi);
 
     // Set texture units.
     glBindTextureUnit(0, dc->font.gl_texture);
 
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
+    glUniform4f(dc->u_color, 1.0f, 1.0f, 1.0f, 1.0f);
 
 }
 
@@ -67,6 +71,7 @@ void draw_resize(DrawContext *dc, int w, int h) {
         dc->height = w/dc->aspect;
         glViewport(0, (h - dc->height)/2, dc->width, dc->height);
     }
+
 }
 
 void draw_clear(DrawContext *dc) {
@@ -106,7 +111,6 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
 
     glUseProgram(dc->text_shader.gl_program);
     glBindVertexArray(text->vao);
-    //glUniform4f(dc->u_color, 0.1f, 0.8f, 0.9f, 1.0f);
     glUniform1i(dc->u_texture, 0);
     glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
     glDrawArrays(GL_TRIANGLES, 0, text->buffer_len/(4*sizeof(float)));

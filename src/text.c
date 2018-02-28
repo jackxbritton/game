@@ -17,12 +17,6 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
         return;
     }
 
-    Sprite *sb = malloc(len * sizeof(Sprite)); // TODO Put a big buffer in font (or somewhere else?) so we just allocate once.
-    if (sb == NULL) {
-        DEBUG("malloc failed while allocating string '%s'.", str);
-        return;
-    }
-
     // Harfbuzz.
 
     hb_buffer_clear_contents(font->hb_buffer);
@@ -43,7 +37,8 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     // Fill the buffer.
 
-    int sb_i = 0;
+    SpriteBatch *sb = &font->sprite_batch;
+    sprite_batch_clear(sb);
 
     float xi = x;
     text->width = 0.0f;
@@ -51,7 +46,7 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     for (int i = 0; i < len; i++) {
 
-        const char c = str[i];
+        char c = str[i];
         if (!font_contains_char(font, c)) continue;
 
         if (c == '\n') {
@@ -62,6 +57,8 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
             continue;
         }
 
+        if (c == '\t') c = ' ';
+
         const GlyphInfo *gi = &font->glyph_info[c-font->start];
 
         if (gi->metrics.width > 0 && gi->metrics.height > 0) {
@@ -71,9 +68,9 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
             const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)/64;
             const float y2 = y1 + gi->metrics.height/64;
 
-            sprite_init(&sb[sb_i], x1, y1, x2, y2, gi->u1, gi->v1, gi->u2, gi->v2);
-
-            sb_i++;
+            Sprite s;
+            sprite_init(&s, x1, y1, x2, y2, gi->u1, gi->v1, gi->u2, gi->v2);
+            sprite_batch_add(sb, &s);
         }
 
         xi += glyph_pos[i].x_advance/64;
@@ -82,16 +79,14 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     if (x - xi > text->width) text->width = x - xi;
 
-    text->buffer_len = sb_i * sizeof(Sprite);
+    text->buffer_len = sb->sprites_count*sizeof(Sprite);
 
     // Generate vbo.
     glGenVertexArrays(1, &text->vao);
     glBindVertexArray(text->vao);
     glGenBuffers(1, &text->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, text->vbo);
-    glBufferData(GL_ARRAY_BUFFER, text->buffer_len, sb, GL_STREAM_DRAW);
-
-    free(sb);
+    glBufferData(GL_ARRAY_BUFFER, text->buffer_len, sb->sprites, GL_STREAM_DRAW);
 
     // Attrib pointers.
     glVertexAttribPointer(
