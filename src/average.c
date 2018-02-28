@@ -28,7 +28,6 @@ void average_add(Average *a, float f) {
     assert(a != NULL);
     a->buffer[a->current] = f;
     a->current = (a->current + 1) % a->n;
-    DEBUG("%d", a->current);
 }
 
 float average_calc(Average *a) {

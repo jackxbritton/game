@@ -26,6 +26,11 @@ int main(int argc, char *argv[]) {
     float x = 0.0f,
           y = 0.0f;
 
+    // FPS counter stuff.
+    const int update_fps_every = 100;
+    int last_fps_update = 0;
+    float fps = 0.0f;
+
     Average average;
     average_init(&average, 64);
 
@@ -44,6 +49,11 @@ int main(int argc, char *argv[]) {
 
         average_add(&average, 1.0f / window.dt);
 
+        if (window.elapsed_ms - update_fps_every > last_fps_update) {
+            last_fps_update = window.elapsed_ms;
+            fps = average_calc(&average);
+        }
+
         draw_clear(&dc);
 
         // Moving text.
@@ -52,7 +62,7 @@ int main(int argc, char *argv[]) {
         draw_string(&dc, buffer, x, y, TEXT_ALIGN_CENTER);
 
         // FPS average.
-        snprintf(buffer, 64, "[%3.1f]", average_calc(&average));
+        snprintf(buffer, 64, "[%3.1f]", fps);
         draw_string(&dc, buffer, -1.0f + 0.1f, -1.0f + 0.1f*aspect, TEXT_ALIGN_LEFT);
 
         window_redraw(&window);

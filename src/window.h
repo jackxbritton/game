@@ -30,7 +30,7 @@ struct Window {
             mouse_right;
     } input;
 
-    Uint32 ms_last;
+    Uint32 elapsed_ms;
     float dt; // In seconds.
 
 };

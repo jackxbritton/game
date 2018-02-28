@@ -51,6 +51,8 @@ void window_init(Window *w) {
     // Initialize things.
     memset(&w->input, 0, sizeof(w->input));
     w->draw_context = NULL;
+
+    w->elapsed_ms = 0;
 }
 
 void window_destroy(Window *w) {
@@ -100,8 +102,8 @@ void window_update(Window *w) {
     }
 
     Uint32 ms_now = SDL_GetTicks();
-    w->dt = (ms_now - w->ms_last) / 1000.0f;
-    w->ms_last = ms_now;
+    w->dt = (ms_now - w->elapsed_ms) / 1000.0f;
+    w->elapsed_ms = ms_now;
 
 }
 
