@@ -7,13 +7,14 @@
 void texture_init(Texture *t, const char *path) {
 
     t->path = copy_string(path);
-    texture_reload(t);
 
     glGenTextures(1, &t->gl_texture);
     if (t->gl_texture == 0) {
         DEBUG("glGenTextures failed.");
         return;
     }
+
+    texture_reload(t);
 }
 
 void texture_destroy(Texture *t) {

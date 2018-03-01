@@ -52,10 +52,6 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
     texture_init(&dc->texture, "../assets/tiles.png");
     catalog_add(&dc->catalog, dc->texture.path, texture_reload, &dc->texture);
 
-    // Set texture units.
-    glBindTextureUnit(0, dc->font.gl_texture);
-    glBindTextureUnit(1, dc->texture.gl_texture);
-
     glClearColor(0.0f, 0.0f, 0.0f, 1.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
@@ -125,6 +121,7 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
     };
 
     glUseProgram(dc->text_shader.gl_program);
+    glBindTexture(GL_TEXTURE_2D, dc->font.gl_texture);
     glBindVertexArray(text->vao);
     glUniform1i(dc->u_texture, 0);
     glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
