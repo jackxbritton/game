@@ -39,7 +39,7 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
 
     for (char c = font->start; c <= font->end; c++) {
 
-        if (FT_Load_Char(font->face, c, FT_LOAD_RENDER)) {
+        if (FT_Load_Char(font->face, c, FT_LOAD_RENDER|FT_LOAD_TARGET_LIGHT)) {
             DEBUG("FT_Load_Char failed for char '%c'.", c);
             continue;
         }

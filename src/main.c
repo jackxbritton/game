@@ -34,6 +34,8 @@ int main(int argc, char *argv[]) {
     Font font;
     font_init(&font, &ft,
               "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
+              //"/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+              //"/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
               72, dc.hdpi, dc.vdpi);
 
     Texture texture;
@@ -57,7 +59,10 @@ int main(int argc, char *argv[]) {
     Text static_text;
     char *str = load_entire_file("Makefile");
     text_init(&static_text, &font, str, dc.text_shader.gl_program);
-    free(str);
+
+    SpriteBatch sprite_batch;
+    sprite_batch_init(&sprite_batch, 1);
+    int state = 0;
 
     while (1) {
 
@@ -94,8 +99,10 @@ int main(int argc, char *argv[]) {
         draw_clear(&dc);
 
         // Static text.
-        glUniform4f(dc.u_color, 0.8f, 0.3f, 0.3f, 0.4f);
-        draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f, TEXT_ALIGN_LEFT);
+        glUniform4f(dc.u_color, 0.2f, 0.2f, 0.2f, 1.0f);
+        draw_text(&dc, &static_text, -0.95f + 0.01f, 0.8f + 0.01f, TEXT_ALIGN_LEFT);
+        glUniform4f(dc.u_color, 0.6f, 0.2f, 0.2f, 1.0f);
+        draw_text(&dc, &static_text, -0.95f, 0.8f, TEXT_ALIGN_LEFT);
 
         // FPS average.
         glUniform4f(dc.u_color, 0.2f, 0.2f, 0.2f, 1.0f);
@@ -111,10 +118,14 @@ int main(int argc, char *argv[]) {
         draw_string(&dc, &font, buffer, x, y, TEXT_ALIGN_CENTER);
 
         // Sprite of man.
-        int state = (window.elapsed_ms / 100) % 4;
-        Sprite sprite;
-        sprite_init(&sprite, x, y, x+0.3f, y+0.5f, state*0.25f, 0.f, state*0.25f + 0.25f, 1.0f);
-        draw_sprite(&dc, &sprite, &texture);
+        if (state != (window.elapsed_ms / 100) % 4) {
+            state = (window.elapsed_ms / 100) % 4;
+            Sprite sprite;
+            sprite_init(&sprite, x, y, 0.3f, 0.5f, state*0.25f, 0.f, state*0.25f + 0.25f, 1.0f);
+            sprite_batch_clear(&sprite_batch);
+            sprite_batch_add(&sprite_batch, &sprite);
+        }
+        draw_sprite_batch(&dc, &sprite_batch, &texture);
 
         glUseProgram(dc.text_shader.gl_program);
 
@@ -132,6 +143,7 @@ int main(int argc, char *argv[]) {
 
     FT_Done_FreeType(ft);
     SDL_Quit();
+    free(str);
 
     return 0;
 }

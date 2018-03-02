@@ -50,4 +50,6 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
 
 void draw_sprite(DrawContext *dc, Sprite *sprite, Texture *texture);
 
+void draw_sprite_batch(DrawContext *dc, SpriteBatch *sprite_batch, Texture *texture);
+
 #endif

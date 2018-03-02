@@ -65,18 +65,22 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
         if (gi->metrics.width > 0 && gi->metrics.height > 0) {
 
-            const float x1 = x  + (glyph_pos[i].x_offset + gi->metrics.horiBearingX)/64;
-            const float x2 = x1 + gi->metrics.width/64;
-            const float y1 = y  - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)/64;
-            const float y2 = y1 + gi->metrics.height/64;
+            const float xi = x  + (glyph_pos[i].x_offset + gi->metrics.horiBearingX)/64;
+            const float  w = gi->metrics.width/64;
+            const float yi = y  - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)/64;
+            const float  h = gi->metrics.height/64;
 
             Sprite sprite;
-            sprite_init(&sprite, x1, y1, x2, y2, gi->u1, gi->v1, gi->u2, gi->v2);
+            sprite_init(&sprite, xi, yi, w, h, gi->u1, gi->v1, gi->u2, gi->v2);
             array_add(array, &sprite);
         }
 
+        // TODO With some fonts, x_advance is incorrect.
+        //      In particular this happens with DejaVuSerif after "fi".
+
         x += glyph_pos[i].x_advance/64;
         y -= glyph_pos[i].y_advance/64;
+
     }
 
     if (x > text->width) text->width = x;

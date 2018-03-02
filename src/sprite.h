@@ -10,13 +10,13 @@ struct Sprite {
 };
 typedef struct Sprite Sprite;
 
-void sprite_init(Sprite *sprite, float x1, float y1,
-                                 float x2, float y2,
+void sprite_init(Sprite *sprite, float  x, float  y,
+                                 float  w, float  h,
                                  float u1, float v1,
                                  float u2, float v2);
 
 struct SpriteBatch {
-    GLuint vbo;
+    GLuint vao, vbo;
     Array sprites;
 };
 typedef struct SpriteBatch SpriteBatch;
