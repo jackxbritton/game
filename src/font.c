@@ -35,6 +35,7 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
 
     int width = 0,
         height = 0;
+    const int gap = 1;
 
     for (char c = font->start; c <= font->end; c++) {
 
@@ -48,7 +49,7 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
         if (g->bitmap.width == 0 && g->bitmap.rows == 0) continue;
 
         // Update width and height.
-        width += g->bitmap.width;
+        width += g->bitmap.width + gap;
         if (height < g->bitmap.rows) height = g->bitmap.rows;
     }
 
@@ -95,18 +96,12 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
 
         // Fill glyph info.
 
-        // TODO Half-pixel correction.
-        //gi->u1 = (x + 0.5f) / width;
-        //gi->u2 = (x + g->bitmap.width - 0.5f) / width;
-        //gi->v1 = 1.0f - (g->bitmap.rows - 0.5f) / height;
-        //gi->v2 = 1.0f - 0.5f/height;
-
         gi->u1 = (float) x / width;
         gi->u2 = (float) (x + g->bitmap.width) / width;
         gi->v1 = 1.0f - (float) g->bitmap.rows / height;
         gi->v2 = 1.0f;
 
-        x += g->bitmap.width;
+        x += g->bitmap.width + gap;
 
     }
 

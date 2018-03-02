@@ -47,11 +47,14 @@ int main(int argc, char *argv[]) {
 
         catalog_service(&dc.catalog); // Make sure we hotload stuff.
 
-        const float speed = 2.0f;
-        y -= window.input.down  * speed*dc.aspect * window.dt;
-        y += window.input.up    * speed*dc.aspect * window.dt;
-        x -= window.input.left  * speed * window.dt;
-        x += window.input.right * speed * window.dt;
+        //const float speed = 2.0f;
+        //y -= window.input.down  * speed*dc.aspect * window.dt;
+        //y += window.input.up    * speed*dc.aspect * window.dt;
+        //x -= window.input.left  * speed * window.dt;
+        //x += window.input.right * speed * window.dt;
+        x = (float) window.input.mouse_x / dc.width  * 2.0f - 1.0f;
+        y = (float) window.input.mouse_y / dc.height * 2.0f - 1.0f;
+        y = -y;
 
         average_add(&average, 1.0f / window.dt);
 
@@ -76,11 +79,15 @@ int main(int argc, char *argv[]) {
         draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f, TEXT_ALIGN_LEFT);
 
         // FPS average.
+        glUniform4f(dc.u_color, 0.2f, 0.2f, 0.2f, 1.0f);
+        draw_text(&dc, &fps_text, -1.0f + 0.11f, -1.0f + 0.11f*dc.aspect, TEXT_ALIGN_LEFT);
         glUniform4f(dc.u_color, 0.5f, 0.9f, 0.5f, 1.0f);
         draw_text(&dc, &fps_text, -1.0f + 0.1f, -1.0f + 0.1f*dc.aspect, TEXT_ALIGN_LEFT);
 
         // Moving text.
         snprintf(buffer, 64, "(%d, %d)", window.input.mouse_x, window.input.mouse_y);
+        glUniform4f(dc.u_color, 0.2f, 0.2f, 0.2f, 1.0f);
+        draw_string(&dc, buffer, x+0.01f, y+0.01f, TEXT_ALIGN_CENTER);
         glUniform4f(dc.u_color, 0.1f, 0.8f, 0.9f, 1.0f);
         draw_string(&dc, buffer, x, y, TEXT_ALIGN_CENTER);
 

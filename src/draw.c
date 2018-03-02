@@ -41,9 +41,11 @@ void draw_context_init(DrawContext *dc, float aspect, int width, int height, flo
     // FreeType and our font.
     if (FT_Init_FreeType(&dc->ft)) DEBUG("FT_Init_FreeType failed.");
     font_init(&dc->font, &dc->ft,
-              //"/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-              "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
-              144, dc->hdpi, dc->vdpi);
+              "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+              //"/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
+              //"/usr/share/fonts/truetype/freefont/FreeMono.ttf",
+              //"/usr/share/fonts/truetype/ttf-bitstream-vera/VeraMono.ttf",
+              24, dc->hdpi, dc->vdpi);
 
     // TODO draw_context_load_texture?
     // TODO draw_context_load_font?
