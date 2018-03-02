@@ -54,11 +54,11 @@ int main(int argc, char *argv[]) {
     average_init(&average, 32);
 
     Text fps_text;
-    text_init(&fps_text, &font, "-", dc.text_shader.gl_program);
+    text_init(&fps_text, &font, "-");
 
     Text static_text;
     char *str = load_entire_file("Makefile");
-    text_init(&static_text, &font, str, dc.text_shader.gl_program);
+    text_init(&static_text, &font, str);
 
     SpriteBatch sprite_batch;
     sprite_batch_init(&sprite_batch, 1);
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
             // Update text.
             snprintf(buffer, 64, "[%5.1f]", fps);
             text_destroy(&fps_text);
-            text_init(&fps_text, &font, buffer, dc.text_shader.gl_program);
+            text_init(&fps_text, &font, buffer);
 
         }
 

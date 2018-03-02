@@ -81,7 +81,7 @@ void draw_string(DrawContext *dc, Font *font, const char *str, float x, float y,
     assert(str != NULL);
 
     Text text;
-    text_init(&text, font, str, dc->text_shader.gl_program);
+    text_init(&text, font, str);
 
     draw_text(dc, &text, x, y, alignment);
 

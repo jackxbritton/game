@@ -13,7 +13,7 @@ struct Text {
 };
 typedef struct Text Text;
 
-void text_init(Text *text, Font *font, const char *str, GLuint program);
+void text_init(Text *text, Font *font, const char *str);
 void text_destroy(Text *text);
 
 #endif

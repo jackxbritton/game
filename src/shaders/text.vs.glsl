@@ -1,7 +1,7 @@
 #version 330
 
-in vec2 point;
-in vec2 uv;
+layout (location = 0) in vec2 point;
+layout (location = 1) in vec2 uv;
 uniform mat3 transform;
 
 out vec2 uv_frag;

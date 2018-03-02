@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "sprite.h"
 
-void text_init(Text *text, Font *font, const char *str, GLuint program) {
+void text_init(Text *text, Font *font, const char *str) {
 
     assert(text != NULL);
     assert(font != NULL);
@@ -104,7 +104,6 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
         0
     );
     glEnableVertexAttribArray(0);
-    glBindAttribLocation(program, 0, "point");
     glVertexAttribPointer(
         1,
         2,
@@ -114,7 +113,6 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
         (void *) (2*sizeof(GLfloat))
     );
     glEnableVertexAttribArray(1);
-    glBindAttribLocation(program, 1, "uv");
 
 }
 
