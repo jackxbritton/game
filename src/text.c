@@ -30,11 +30,6 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
     unsigned int glyph_count;
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(font->hb_buffer, &glyph_count);
 
-    // Calculate text width.
-
-    float x = 0.0f,
-          y = 0.0f;
-
     // Fill the buffer.
 
     // TODO
@@ -44,7 +39,11 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
     Array *array = &font->sprite_batch;
     array_clear(array);
 
-    float xi = x;
+    // TODO Floating point imperfections here. Make our numbers smaller?
+
+    float x = 0.0f,
+          y = 0.0f;
+
     text->width = 0.0f;
     text->height = font->face->size->metrics.height/64;
 
@@ -54,8 +53,8 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
         if (!font_contains_char(font, c)) continue;
 
         if (c == '\n') {
-            if (x - xi > text->width) text->width = x - xi;
-            xi = x;
+            if (x > text->width) text->width = x;
+            x = 0.0f;
             y -= font->face->size->metrics.height/64;
             text->height += font->face->size->metrics.height/64;
             continue;
@@ -67,21 +66,21 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
         if (gi->metrics.width > 0 && gi->metrics.height > 0) {
 
-            const float x1 = xi + (glyph_pos[i].x_offset + gi->metrics.horiBearingX)/64;
+            const float x1 = x  + (glyph_pos[i].x_offset + gi->metrics.horiBearingX)/64;
             const float x2 = x1 + gi->metrics.width/64;
-            const float y1 = y - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)/64;
+            const float y1 = y  - (gi->metrics.height - gi->metrics.horiBearingY - glyph_pos[i].y_offset)/64;
             const float y2 = y1 + gi->metrics.height/64;
 
-            Sprite s;
-            sprite_init(&s, x1, y1, x2, y2, gi->u1, gi->v1, gi->u2, gi->v2);
-            array_add(array, &s);
+            Sprite sprite;
+            sprite_init(&sprite, x1, y1, x2, y2, gi->u1, gi->v1, gi->u2, gi->v2);
+            array_add(array, &sprite);
         }
 
-        xi += glyph_pos[i].x_advance/64;
+        x += glyph_pos[i].x_advance/64;
         y -= glyph_pos[i].y_advance/64;
     }
 
-    if (x - xi > text->width) text->width = x - xi;
+    if (x > text->width) text->width = x;
 
     text->buffer_len = array->count * sizeof(Sprite);
 

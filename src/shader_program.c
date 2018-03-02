@@ -19,7 +19,6 @@ void shader_program_init(ShaderProgram *sp, const char *vert_path, const char *f
     }
 
     shader_program_reload(sp);
-    return;
 }
 
 void shader_program_reload(ShaderProgram *sp) {
@@ -35,8 +34,14 @@ void shader_program_reload(ShaderProgram *sp) {
     }
 
     sp->gl_vert_shader = gl_create_shader(GL_VERTEX_SHADER, vert_src);
-    if (sp->gl_vert_shader == 0) return;
+    free(vert_src);
+    if (sp->gl_vert_shader == 0) {
+        free(frag_src);
+        return;
+    }
+
     sp->gl_frag_shader = gl_create_shader(GL_FRAGMENT_SHADER, frag_src);
+    free(frag_src);
     if (sp->gl_frag_shader == 0) {
         glDeleteShader(sp->gl_vert_shader);
         return;
@@ -61,9 +66,6 @@ void shader_program_reload(ShaderProgram *sp) {
         glGetProgramInfoLog(sp->gl_program, 1024, NULL, error);
         DEBUG("glLinkProgram failed: '%s'.", error);
     }
-
-    free(vert_src);
-    free(frag_src);
 }
 
 GLuint gl_create_shader(GLenum type, const char *src) {

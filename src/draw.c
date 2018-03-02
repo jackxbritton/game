@@ -8,14 +8,14 @@ static GLint gl_get_uniform(GLuint program, const char *id) {
     return out;
 }
 
-void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
+void draw_context_init(DrawContext *dc, float aspect, int width, int height, float hdpi, float vdpi) {
 
     assert(dc != NULL);
 
     dc->aspect = aspect;
-    dc->hdpi   = hdpi;
-    dc->vdpi   = vdpi;
-    dc->aspect = aspect;
+    draw_resize(dc, width, height);
+    dc->hdpi = hdpi;
+    dc->vdpi = vdpi;
 
     catalog_init(&dc->catalog);
 
@@ -40,10 +40,10 @@ void draw_context_init(DrawContext *dc, float aspect, float hdpi, float vdpi) {
 
     // FreeType and our font.
     if (FT_Init_FreeType(&dc->ft)) DEBUG("FT_Init_FreeType failed.");
-    font_init(&dc->font,
-              &dc->ft,
-              "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-              72, (int) dc->hdpi, (int) dc->vdpi);
+    font_init(&dc->font, &dc->ft,
+              //"/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+              "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
+              144, dc->hdpi, dc->vdpi);
 
     // TODO draw_context_load_texture?
     // TODO draw_context_load_font?
@@ -83,6 +83,13 @@ void draw_resize(DrawContext *dc, int w, int h) {
         glViewport(0, (h - dc->height)/2, dc->width, dc->height);
     }
 
+    // We're not ready for this yet.
+    //font_destroy(&dc->font);
+    //font_init(&dc->font,
+    //          &dc->ft,
+    //          "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+    //          dc->font_size * dc->width, (int) dc->hdpi, (int) dc->vdpi);
+
 }
 
 void draw_clear(DrawContext *dc) {
@@ -110,8 +117,8 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
     const float s = 2.0f / dc->width;
 
     if (alignment != TEXT_ALIGN_LEFT) {
-        if      (alignment == TEXT_ALIGN_CENTER) x -= text->width*s/2;
-        else if (alignment == TEXT_ALIGN_RIGHT)  x -= text->width*s;
+        if      (alignment == TEXT_ALIGN_CENTER) x -= s*text->width/2;
+        else if (alignment == TEXT_ALIGN_RIGHT)  x -= s*text->width;
     }
 
     const GLfloat transform[] = {
@@ -119,6 +126,8 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
         0.0f, s*dc->aspect,    y,
         0.0f,         0.0f, 1.0f
     };
+
+    // The issue is that our quads aren't mapping pixel-for-pixel to our UVs.
 
     glUseProgram(dc->text_shader.gl_program);
     glBindTexture(GL_TEXTURE_2D, dc->font.gl_texture);

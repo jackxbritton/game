@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "sprite.h"
 
-void font_init(Font *font, FT_Library *ft, const char *filename, int point_size, int hdpi, int vdpi) {
+void font_init(Font *font, FT_Library *ft, const char *filename, int point_size, float hdpi, float vdpi) {
 
     assert(font != NULL);
     assert(ft != NULL);
@@ -24,9 +24,9 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
         return;
     }
 
-    error = FT_Set_Char_Size(font->face, 0, point_size*64, hdpi, vdpi);
+    error = FT_Set_Pixel_Sizes(font->face, 0, vdpi*point_size/72);
     if (error) {
-        DEBUG("FT_Set_Char_Size failed for filename='%s', point_size=%d, hdpi=%d, vdpi=%d.", filename, point_size, hdpi, vdpi);
+        DEBUG("FT_Set_Char_Size failed for filename='%s', point_size=%d, hdpi=%f, vdpi=%f.", filename, point_size, hdpi, vdpi);
         return;
     }
 
@@ -94,10 +94,17 @@ void font_init(Font *font, FT_Library *ft, const char *filename, int point_size,
                         g->bitmap.buffer);
 
         // Fill glyph info.
-        gi->u1 = (x + 0.5f) / width;
-        gi->u2 = (x + g->bitmap.width - 0.5f) / width;
-        gi->v1 = 1.0f - (g->bitmap.rows - 0.5f) / height;
-        gi->v2 = 1.0f - 0.5f/height;
+
+        // TODO Half-pixel correction.
+        //gi->u1 = (x + 0.5f) / width;
+        //gi->u2 = (x + g->bitmap.width - 0.5f) / width;
+        //gi->v1 = 1.0f - (g->bitmap.rows - 0.5f) / height;
+        //gi->v2 = 1.0f - 0.5f/height;
+
+        gi->u1 = (float) x / width;
+        gi->u2 = (float) (x + g->bitmap.width) / width;
+        gi->v1 = 1.0f - (float) g->bitmap.rows / height;
+        gi->v2 = 1.0f;
 
         x += g->bitmap.width;
 
@@ -136,6 +143,8 @@ void font_destroy(Font *font) {
     //hb_ft_face_destroy(font->hb_face);
     //hb_ft_font_destroy(font->hb_font);
     hb_buffer_destroy(font->hb_buffer);
+
+    glDeleteTextures(1, &font->gl_texture);
 
     array_destroy(&font->sprite_batch);
 

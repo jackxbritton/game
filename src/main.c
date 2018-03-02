@@ -14,13 +14,12 @@ int main(int argc, char *argv[]) {
     window_init(&window);
 
     DrawContext dc;
-    draw_context_init(&dc, 16.0f/9.0f, window.hdpi, window.vdpi);
+    draw_context_init(&dc, 16.0f/9.0f, window.width, window.height, window.hdpi, window.vdpi);
 
     // This stuff is sort of hacky,
     // but I think I reduced the evil
     // as much as possible.
     window.draw_context = &dc;
-    draw_resize(&dc, window.width, window.height);
 
     float x = 0.0f,
           y = 0.0f;
@@ -74,7 +73,7 @@ int main(int argc, char *argv[]) {
 
         // Static text.
         glUniform4f(dc.u_color, 0.8f, 0.3f, 0.3f, 0.4f);
-        draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f, TEXT_ALIGN_RIGHT);
+        draw_text(&dc, &static_text, -1.0f + 0.1f, 1.0f, TEXT_ALIGN_LEFT);
 
         // FPS average.
         glUniform4f(dc.u_color, 0.5f, 0.9f, 0.5f, 1.0f);
