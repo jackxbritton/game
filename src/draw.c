@@ -8,7 +8,7 @@ static GLint gl_get_uniform(GLuint program, const char *id) {
     return out;
 }
 
-void draw_context_init(DrawContext *dc, float aspect, int width, int height, float hdpi, float vdpi) {
+void draw_context_init(DrawContext *dc, Catalog *catalog, float aspect, int width, int height, float hdpi, float vdpi) {
 
     assert(dc != NULL);
 
@@ -17,42 +17,29 @@ void draw_context_init(DrawContext *dc, float aspect, int width, int height, flo
     dc->hdpi = hdpi;
     dc->vdpi = vdpi;
 
-    catalog_init(&dc->catalog);
+    dc->catalog = catalog;
+
+    dc->bound_texture = 0;
+    dc->bound_program = 0;
 
     // Text shader.
     shader_program_init(&dc->text_shader,
                         "../src/shaders/text.vs.glsl",
                         "../src/shaders/text.fs.glsl");
-    catalog_add(&dc->catalog, dc->text_shader.vert_path, shader_program_reload, &dc->text_shader);
-    catalog_add(&dc->catalog, dc->text_shader.frag_path, shader_program_reload, &dc->text_shader);
+    catalog_add(dc->catalog, dc->text_shader.vert_path, shader_program_reload, &dc->text_shader);
+    catalog_add(dc->catalog, dc->text_shader.frag_path, shader_program_reload, &dc->text_shader);
 
     // Quad shader.
     shader_program_init(&dc->quad_shader,
                         "../src/shaders/quad.vs.glsl",
                         "../src/shaders/quad.fs.glsl");
-    catalog_add(&dc->catalog, dc->quad_shader.vert_path, shader_program_reload, &dc->quad_shader);
-    catalog_add(&dc->catalog, dc->quad_shader.frag_path, shader_program_reload, &dc->quad_shader);
+    catalog_add(dc->catalog, dc->quad_shader.vert_path, shader_program_reload, &dc->quad_shader);
+    catalog_add(dc->catalog, dc->quad_shader.frag_path, shader_program_reload, &dc->quad_shader);
 
     // Uniforms.
     dc->u_texture   = gl_get_uniform(dc->text_shader.gl_program, "texture");
     dc->u_color     = gl_get_uniform(dc->text_shader.gl_program, "color");
     dc->u_transform = gl_get_uniform(dc->text_shader.gl_program, "transform");
-
-    // FreeType and our font.
-    if (FT_Init_FreeType(&dc->ft)) DEBUG("FT_Init_FreeType failed.");
-    font_init(&dc->font, &dc->ft,
-              "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-              //"/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
-              //"/usr/share/fonts/truetype/freefont/FreeMono.ttf",
-              //"/usr/share/fonts/truetype/ttf-bitstream-vera/VeraMono.ttf",
-              24, dc->hdpi, dc->vdpi);
-
-    // TODO draw_context_load_texture?
-    // TODO draw_context_load_font?
-
-    // Load a texture.
-    texture_init(&dc->texture, "../assets/tiles.png");
-    catalog_add(&dc->catalog, dc->texture.path, texture_reload, &dc->texture);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -63,10 +50,7 @@ void draw_context_init(DrawContext *dc, float aspect, int width, int height, flo
 
 void draw_context_destroy(DrawContext *dc) {
     assert(dc != NULL);
-    catalog_destroy(&dc->catalog);
     shader_program_destroy(&dc->text_shader);
-    font_destroy(&dc->font);
-    FT_Done_FreeType(dc->ft);
 }
 
 void draw_resize(DrawContext *dc, int w, int h) {
@@ -85,26 +69,19 @@ void draw_resize(DrawContext *dc, int w, int h) {
         glViewport(0, (h - dc->height)/2, dc->width, dc->height);
     }
 
-    // We're not ready for this yet.
-    //font_destroy(&dc->font);
-    //font_init(&dc->font,
-    //          &dc->ft,
-    //          "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-    //          dc->font_size * dc->width, (int) dc->hdpi, (int) dc->vdpi);
-
 }
 
 void draw_clear(DrawContext *dc) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void draw_string(DrawContext *dc, const char *str, float x, float y, TextAlignment alignment) {
+void draw_string(DrawContext *dc, Font *font, const char *str, float x, float y, TextAlignment alignment) {
 
     assert(dc != NULL);
     assert(str != NULL);
 
     Text text;
-    text_init(&text, &dc->font, str, dc->text_shader.gl_program);
+    text_init(&text, font, str, dc->text_shader.gl_program);
 
     draw_text(dc, &text, x, y, alignment);
 
@@ -129,10 +106,12 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
         0.0f,         0.0f, 1.0f
     };
 
-    // The issue is that our quads aren't mapping pixel-for-pixel to our UVs.
+    GLuint texture = text->font->gl_texture;
+    if (dc->bound_texture != texture) glBindTexture(GL_TEXTURE_2D, texture);
 
-    glUseProgram(dc->text_shader.gl_program);
-    glBindTexture(GL_TEXTURE_2D, dc->font.gl_texture);
+    GLuint program = dc->text_shader.gl_program;
+    if (dc->bound_program != program) glUseProgram(program);
+
     glBindVertexArray(text->vao);
     glUniform1i(dc->u_texture, 0);
     glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);

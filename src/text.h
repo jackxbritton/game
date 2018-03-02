@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 
 struct Text {
+    Font *font;
     GLuint vao, vbo;
     size_t buffer_len;
     float width,

@@ -9,6 +9,8 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
     assert(font != NULL);
     assert(str != NULL);
 
+    text->font = font;
+
     // Define sprite buffer.
 
     const int len = strlen(str);
@@ -32,14 +34,11 @@ void text_init(Text *text, Font *font, const char *str, GLuint program) {
 
     // Fill the buffer.
 
-    // TODO
-    // Check array->allocated, maybe we can skip a bunch of ifs (from array_add).
+    // TODO Check array->allocated, maybe we can skip a bunch of ifs (from array_add).
     // Pass the array as an argument, instead of using the one from font.
 
     Array *array = &font->sprite_batch;
     array_clear(array);
-
-    // TODO Floating point imperfections here. Make our numbers smaller?
 
     float x = 0.0f,
           y = 0.0f;

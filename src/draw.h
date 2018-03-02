@@ -2,8 +2,6 @@
 #define DRAW_H
 
 #include "shader_program.h"
-#include "font.h"
-#include "texture.h"
 #include "text.h"
 #include "catalog.h"
 
@@ -21,17 +19,15 @@ struct DrawContext {
           u_color,
           u_transform;
 
-    FT_Library ft;
-    Font font;
+    GLuint bound_program,
+           bound_texture;
 
-    Texture texture;
-
-    Catalog catalog;
+    Catalog *catalog;
 
 };
 typedef struct DrawContext DrawContext;
 
-void draw_context_init(DrawContext *dc, float aspect, int width, int height, float hdpi, float vdpi);
+void draw_context_init(DrawContext *dc, Catalog *catalog, float aspect, int width, int height, float hdpi, float vdpi);
 void draw_context_destroy(DrawContext *dc);
 
 void draw_resize(DrawContext *dc, int width, int height);
@@ -47,7 +43,7 @@ enum TextAlignment {
 };
 typedef enum TextAlignment TextAlignment;
 
-void draw_string(DrawContext *dc, const char *str, float x, float y, TextAlignment alignment);
+void draw_string(DrawContext *dc, Font *font, const char *str, float x, float y, TextAlignment alignment);
 void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alignment);
 
 #endif

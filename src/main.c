@@ -10,16 +10,31 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    FT_Library ft;
+    if (FT_Init_FreeType(&ft)) {
+        DEBUG("FT_Init_FreeType failed.");
+        SDL_Quit();
+        return 1;
+    }
+
     Window window;
     window_init(&window);
 
+    Catalog catalog;
+    catalog_init(&catalog);
+
     DrawContext dc;
-    draw_context_init(&dc, 16.0f/9.0f, window.width, window.height, window.hdpi, window.vdpi);
+    draw_context_init(&dc, &catalog, 16.0f/9.0f, window.width, window.height, window.hdpi, window.vdpi);
 
     // This stuff is sort of hacky,
     // but I think I reduced the evil
     // as much as possible.
     window.draw_context = &dc;
+
+    Font font;
+    font_init(&font, &ft,
+              "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
+              48, dc.hdpi, dc.vdpi);
 
     float x = 0.0f,
           y = 0.0f;
@@ -33,11 +48,11 @@ int main(int argc, char *argv[]) {
     average_init(&average, 32);
 
     Text fps_text;
-    text_init(&fps_text, &dc.font, "-", dc.text_shader.gl_program);
+    text_init(&fps_text, &font, "-", dc.text_shader.gl_program);
 
     Text static_text;
     char *str = load_entire_file("Makefile");
-    text_init(&static_text, &dc.font, str, dc.text_shader.gl_program);
+    text_init(&static_text, &font, str, dc.text_shader.gl_program);
     free(str);
 
     while (1) {
@@ -45,7 +60,7 @@ int main(int argc, char *argv[]) {
         window_update(&window);
         if (window.input.quit) break;
 
-        catalog_service(&dc.catalog); // Make sure we hotload stuff.
+        catalog_service(&catalog); // Make sure we hotload stuff.
 
         //const float speed = 2.0f;
         //y -= window.input.down  * speed*dc.aspect * window.dt;
@@ -68,7 +83,7 @@ int main(int argc, char *argv[]) {
             // Update text.
             snprintf(buffer, 64, "[%5.1f]", fps);
             text_destroy(&fps_text);
-            text_init(&fps_text, &dc.font, buffer, dc.text_shader.gl_program);
+            text_init(&fps_text, &font, buffer, dc.text_shader.gl_program);
 
         }
 
@@ -87,26 +102,9 @@ int main(int argc, char *argv[]) {
         // Moving text.
         snprintf(buffer, 64, "(%d, %d)", window.input.mouse_x, window.input.mouse_y);
         glUniform4f(dc.u_color, 0.2f, 0.2f, 0.2f, 1.0f);
-        draw_string(&dc, buffer, x+0.01f, y+0.01f, TEXT_ALIGN_CENTER);
+        draw_string(&dc, &font, buffer, x+0.01f, y+0.01f, TEXT_ALIGN_CENTER);
         glUniform4f(dc.u_color, 0.1f, 0.8f, 0.9f, 1.0f);
-        draw_string(&dc, buffer, x, y, TEXT_ALIGN_CENTER);
-
-        // TODO Draw a textured quad.
-        // Need a sprite batch.
-
-        /*
-        const GLfloat transform[] = {
-            0.0f,      0.0f, 0.0f,
-            0.0f, dc.aspect, 0.0f,
-            0.0f,      0.0f, 1.0f
-        };
-
-        glUseProgram(dc.quad_shader.gl_program);
-        glBindVertexArray(text->vao);
-        glUniform1i(dc->u_texture, 0);
-        glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
-        glDrawArrays(GL_TRIANGLES, 0, text->buffer_len/(4*sizeof(float)));
-        */
+        draw_string(&dc, &font, buffer, x, y, TEXT_ALIGN_CENTER);
 
         window_redraw(&window);
 
@@ -118,6 +116,9 @@ int main(int argc, char *argv[]) {
     draw_context_destroy(&dc);
     window_destroy(&window);
 
+    catalog_destroy(&catalog);
+
+    FT_Done_FreeType(ft);
     SDL_Quit();
 
     return 0;
