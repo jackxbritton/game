@@ -106,14 +106,71 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
         0.0f,         0.0f, 1.0f
     };
 
-    GLuint texture = text->font->gl_texture;
-    if (dc->bound_texture != texture) glBindTexture(GL_TEXTURE_2D, texture);
+    GLuint gl_texture = text->font->gl_texture;
+    if (dc->bound_texture != gl_texture) glBindTexture(GL_TEXTURE_2D, gl_texture);
 
-    GLuint program = dc->text_shader.gl_program;
-    if (dc->bound_program != program) glUseProgram(program);
+    GLuint gl_program = dc->text_shader.gl_program;
+    if (dc->bound_program != gl_program) glUseProgram(gl_program);
 
     glBindVertexArray(text->vao);
     glUniform1i(dc->u_texture, 0);
     glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
     glDrawArrays(GL_TRIANGLES, 0, text->buffer_len/(4*sizeof(float)));
+}
+
+void draw_sprite(DrawContext *dc, Sprite *sprite, Texture *texture) {
+
+    assert(dc != NULL);
+    assert(sprite != NULL);
+    assert(texture != NULL);
+
+    const float s = 1.0f,
+                x = 0.0f,
+                y = 0.0f;
+
+    const GLfloat transform[] = {
+           s,         0.0f,    x,
+        0.0f, s*dc->aspect,    y,
+        0.0f,         0.0f, 1.0f
+    };
+
+    GLuint gl_texture = texture->gl_texture;
+    if (dc->bound_texture != gl_texture) glBindTexture(GL_TEXTURE_2D, gl_texture);
+
+    GLuint gl_program = dc->quad_shader.gl_program;
+    if (dc->bound_program != gl_program) glUseProgram(gl_program);
+
+    GLuint vao, vbo;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Sprite), sprite->buffer, GL_DYNAMIC_DRAW);
+
+    // Attrib pointers.
+    glVertexAttribPointer(
+        0,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        4*sizeof(GLfloat),
+        0
+    );
+    glEnableVertexAttribArray(0);
+    glBindAttribLocation(gl_program, 0, "point");
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        4*sizeof(GLfloat),
+        (void *) (2*sizeof(GLfloat))
+    );
+    glEnableVertexAttribArray(1);
+    glBindAttribLocation(gl_program, 1, "uv");
+
+    glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
+    //glDrawArrays(GL_TRIANGLES, 0, sizeof(Sprite)/(4*sizeof(float)));
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
 }

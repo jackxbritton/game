@@ -34,7 +34,11 @@ int main(int argc, char *argv[]) {
     Font font;
     font_init(&font, &ft,
               "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
-              48, dc.hdpi, dc.vdpi);
+              72, dc.hdpi, dc.vdpi);
+
+    Texture texture;
+    texture_init(&texture, "../assets/foo.png");
+    catalog_add(&catalog, texture.path, texture_reload, &texture);
 
     float x = 0.0f,
           y = 0.0f;
@@ -105,6 +109,14 @@ int main(int argc, char *argv[]) {
         draw_string(&dc, &font, buffer, x+0.01f, y+0.01f, TEXT_ALIGN_CENTER);
         glUniform4f(dc.u_color, 0.1f, 0.8f, 0.9f, 1.0f);
         draw_string(&dc, &font, buffer, x, y, TEXT_ALIGN_CENTER);
+
+        // Sprite of man.
+        int state = (window.elapsed_ms / 100) % 4;
+        Sprite sprite;
+        sprite_init(&sprite, x, y, x+0.3f, y+0.5f, state*0.25f, 0.f, state*0.25f + 0.25f, 1.0f);
+        draw_sprite(&dc, &sprite, &texture);
+
+        glUseProgram(dc.text_shader.gl_program);
 
         window_redraw(&window);
 

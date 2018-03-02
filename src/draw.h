@@ -3,6 +3,8 @@
 
 #include "shader_program.h"
 #include "text.h"
+#include "texture.h"
+#include "sprite.h"
 #include "catalog.h"
 
 struct DrawContext {
@@ -45,5 +47,7 @@ typedef enum TextAlignment TextAlignment;
 
 void draw_string(DrawContext *dc, Font *font, const char *str, float x, float y, TextAlignment alignment);
 void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alignment);
+
+void draw_sprite(DrawContext *dc, Sprite *sprite, Texture *texture);
 
 #endif
