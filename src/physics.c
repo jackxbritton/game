@@ -34,15 +34,31 @@ void rigid_body_init(RigidBody *body, int flags) {
     body->velocity.y = 0.0f;
 }
 
-static int collision_test_circle_circle(CircleCollider *c1, CircleCollider *c2) {
-    return 0;
-}
+static int collision_test(RigidBody *a, RigidBody *b) {
+    if (a->collider_type == COLLIDER_CIRCLE && b->collider_type == COLLIDER_CIRCLE) {
 
-static int collision_test_circle_rect(CircleCollider *c, RectCollider *r) {
-    return 0;
-}
+        float ar = a->collider.circle.radius;
+        float br = b->collider.circle.radius;
 
-static int collision_test_rect_rect(RectCollider *r1, RectCollider *r2) {
+        Vector2 d;
+        d.x = a->position.x - b->position.x;
+        d.y = a->position.y - b->position.y;
+        if (vector2_length(&d) <= ar + br) return 1;
+
+        return 0;
+
+    } else if (a->collider_type == COLLIDER_CIRCLE && b->collider_type == COLLIDER_RECT) {
+        // TODO
+        return 0;
+    } else if (a->collider_type == COLLIDER_RECT && b->collider_type == COLLIDER_CIRCLE) {
+        // TODO
+        return 0;
+    } else if (a->collider_type == COLLIDER_RECT && b->collider_type == COLLIDER_RECT) {
+        // TODO
+        return 0;
+    }
+
+    DEBUG("Trying to update rigid bodies with collider_type COLLIDER_UNDEFINED!");
     return 0;
 }
 
@@ -66,22 +82,7 @@ static void update(Array *array, float dt) {
             RigidBody *a = array_get(array, i);
             RigidBody *b = array_get(array, j);
 
-            int collision = 0;
-
-            if (a->collider_type == COLLIDER_CIRCLE || b->collider_type == COLLIDER_CIRCLE) {
-                collision = collision_test_circle_circle(&a->collider.circle, &b->collider.circle);
-            } else if (a->collider_type == COLLIDER_CIRCLE || b->collider_type == COLLIDER_RECT) {
-                collision = collision_test_circle_rect(&a->collider.circle, &b->collider.rect);
-            } else if (a->collider_type == COLLIDER_RECT || b->collider_type == COLLIDER_CIRCLE) {
-                collision = collision_test_circle_rect(&b->collider.circle, &a->collider.rect);
-            } else if (a->collider_type == COLLIDER_RECT || b->collider_type == COLLIDER_RECT) {
-                collision = collision_test_rect_rect(&a->collider.rect, &b->collider.rect);
-            } else {
-                DEBUG("Trying to update rigid bodies with collider_type COLLIDER_UNDEFINED!");
-                return;
-            }
-
-            if (collision) {
+            if (collision_test(a, b)) {
                 DEBUG("there was a collision!");
                 // TODO Correction and callbacks.
             }

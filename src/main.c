@@ -16,47 +16,7 @@ typedef struct Spaceship Spaceship;
 
 void draw_spaceship(DrawContext *dc, Texture *texture, int spaceship, int flap, float x, float y, float angle);
 
-/*
-
-
--- THOUGHTS --
-Collision and stuff!
-Colliders will all be in an array or memory pool.
-Functions will operate on this array. Details:
-
-    while dt > max:
-        dt -= max
-        update(max)
-    update(dt)
-
-    eventually broadphase (quadtrees?)
-
-*/
-
 int main(int argc, char *argv[]) {
-
-    // TODO Test physics.c.
-
-    RigidBody rb;
-    rigid_body_init(&rb, 0);
-    rb.collider_type = COLLIDER_CIRCLE;
-    rb.collider.circle.radius = 0.4f;
-
-    Vector2 v;
-    v.x =  4.0f;
-    v.y = -2.0f;
-    Vector2 vn = v;
-    vector2_normalize(&vn);
-    DEBUG("l=%f, l^2=%f, vn=(%f, %f)",
-          vector2_length(&v),
-          vector2_length_squared(&v),
-          vn.x, vn.y);
-
-    return 0;
-
-    
-    // ^ Delete that return statement!
-
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         DEBUG("%s", SDL_GetError());
@@ -126,6 +86,20 @@ int main(int argc, char *argv[]) {
     player.position_x = 0.0f;
     player.position_y = -0.45f;
 
+    // TODO Test rigid bodies.
+
+    Array rigid_bodies;
+    array_init(&rigid_bodies, 2, sizeof(RigidBody));
+
+    RigidBody c1;
+    rigid_body_init(&c1, 0);
+    c1.position.x = 0.0f;
+    c1.position.y = 0.0f;
+    c1.collider_type = COLLIDER_CIRCLE;
+    c1.collider.circle.radius = 0.3f;
+
+    array_add(&rigid_bodies, &c1);
+
     while (1) {
 
         window_update(&window);
@@ -166,6 +140,21 @@ int main(int argc, char *argv[]) {
             text_init(&fps_text, &font, buffer);
 
         }
+
+        // TODO Test rigid body.
+
+        // Add a second circle.
+        RigidBody c2;
+        rigid_body_init(&c2, 0);
+        c2.position.x = x;
+        c2.position.y = y;
+        c2.collider_type = COLLIDER_CIRCLE;
+        c2.collider.circle.radius = 0.01f;
+        array_add(&rigid_bodies, &c2);
+
+        rigid_bodies_update(&rigid_bodies, window.dt); // Update.
+
+        rigid_bodies.count--; // Pop.
 
         draw_clear(&dc);
 
@@ -220,6 +209,8 @@ int main(int argc, char *argv[]) {
         window_redraw(&window);
 
     }
+
+    array_destroy(&rigid_bodies);
 
     sprite_batch_destroy(&sprite_batch);
     texture_destroy(&dude_texture);
