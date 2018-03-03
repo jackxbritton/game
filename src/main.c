@@ -3,6 +3,8 @@
 #include "draw.h"
 #include "average.h" // For FPS averaging..
 
+void draw_spaceship(DrawContext *dc, Texture *texture, float x, float y, int n, int state);
+
 int main(int argc, char *argv[]) {
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -38,9 +40,13 @@ int main(int argc, char *argv[]) {
               //"/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
               72, dc.hdpi, dc.vdpi);
 
-    Texture texture;
-    texture_init(&texture, "../assets/foo.png");
-    catalog_add(&catalog, texture.path, texture_reload, &texture);
+    Texture dude_texture;
+    texture_init(&dude_texture, "../assets/foo.png");
+    catalog_add(&catalog, dude_texture.path, texture_reload, &dude_texture);
+
+    Texture galaga_texture;
+    texture_init(&galaga_texture, "../assets/galaga.png");
+    catalog_add(&catalog, galaga_texture.path, texture_reload, &galaga_texture);
 
     float x = 0.0f,
           y = 0.0f;
@@ -62,7 +68,8 @@ int main(int argc, char *argv[]) {
 
     SpriteBatch sprite_batch;
     sprite_batch_init(&sprite_batch, 1);
-    int state = 0;
+    int state     = 0,
+        spaceship = 0;
 
     while (1) {
 
@@ -108,20 +115,20 @@ int main(int argc, char *argv[]) {
         draw_clear(&dc);
 
         // Static text.
-        draw_set_color(&dc, 0.2f, 0.2f, 0.2f, 1.0f);
+        draw_set_color(&dc, 0.1f, 0.1f, 0.1f, 1.0f);
         draw_text(&dc, &static_text, -0.95f + 0.01f, 0.8f + 0.01f, TEXT_ALIGN_LEFT);
         draw_set_color(&dc, 0.6f, 0.2f, 0.2f, 1.0f);
         draw_text(&dc, &static_text, -0.95f, 0.8f, TEXT_ALIGN_LEFT);
 
         // FPS average.
-        draw_set_color(&dc, 0.2f, 0.2f, 0.2f, 1.0f);
+        draw_set_color(&dc, 0.1f, 0.1f, 0.1f, 1.0f);
         draw_text(&dc, &fps_text, -1.0f + 0.11f, -1.0f + 0.11f*dc.aspect, TEXT_ALIGN_LEFT);
         draw_set_color(&dc, 0.5f, 0.9f, 0.5f, 1.0f);
         draw_text(&dc, &fps_text, -1.0f + 0.1f, -1.0f + 0.1f*dc.aspect, TEXT_ALIGN_LEFT);
 
         // Moving text.
         snprintf(buffer, 64, "(%d, %d)", mouse_x, mouse_y);
-        draw_set_color(&dc, 0.2f, 0.2f, 0.2f, 1.0f);
+        draw_set_color(&dc, 0.1f, 0.1f, 0.1f, 1.0f);
         draw_string(&dc, &font, buffer, x+0.01f, y+0.01f, TEXT_ALIGN_CENTER);
         draw_set_color(&dc, 0.1f, 0.8f, 0.9f, 1.0f);
         draw_string(&dc, &font, buffer, x, y, TEXT_ALIGN_CENTER);
@@ -131,19 +138,33 @@ int main(int argc, char *argv[]) {
             state = (window.elapsed_ms / 100) % 4;
 
             Sprite sprite;
-            sprite_init(&sprite, 0.0f, 0.0f, 0.3f, 0.5f, state*0.25f, 0.f, state*0.25f + 0.25f, 1.0f);
+            sprite_init(&sprite, 0.0f, 0.0f, 0.3f, 0.5f, state*0.25f, 0.0f, state*0.25f + 0.25f, 1.0f);
             sprite_batch_clear(&sprite_batch);
             sprite_batch_add(&sprite_batch, &sprite);
             sprite_batch_update(&sprite_batch);
 
         }
-        draw_sprite_batch(&dc, &sprite_batch, &texture, x, y);
+
+        draw_sprite_batch(&dc, &sprite_batch, &dude_texture, x, y);
+
+        // Sprite of spaceship.
+
+        state = (window.elapsed_ms / 100) % 24;
+        if (window.input.up) spaceship = (spaceship + 1) % 12;
+
+        snprintf(buffer, 64, "%d", state);
+        draw_set_color(&dc, 1.0f, 1.0f, 1.0f, 1.0f);
+        draw_string(&dc, &font, buffer, -0.2f, 0.0f, TEXT_ALIGN_CENTER);
+
+        draw_spaceship(&dc, &galaga_texture, 0.0f, 0.0f, spaceship, state);
 
         window_redraw(&window);
 
     }
 
     sprite_batch_destroy(&sprite_batch);
+    texture_destroy(&dude_texture);
+    texture_destroy(&galaga_texture);
 
     text_destroy(&static_text);
     text_destroy(&fps_text);
@@ -158,4 +179,47 @@ int main(int argc, char *argv[]) {
     free(str);
 
     return 0;
+}
+
+void draw_spaceship(DrawContext *dc, Texture *texture, float x, float y, int n, int state) {
+
+    const int w = texture->width,
+              h = texture->height;
+    const int r = state/6;
+    state = state % 6;
+
+    // Draw a spaceship.
+
+    Sprite sprite;
+
+    if (r == 0) {
+        float u = (13.0f + 24.0f*state) / w,
+              v = (309.0f - 24.0f*n) / h;
+        sprite_init(&sprite, x, y, 0.3f, 0.3f,
+                             u, v,
+                             u + 24.0f/w,
+                             v + 24.0f/h);
+    } else if (r == 1) {
+        float u = (13.0f + 24.0f*(6-state) - 3.0f) / w,
+              v = (309.0f - 24.0f*n) / h;
+        sprite_init(&sprite, x, y, 0.3f, 0.3f,
+                             u + 24.0f/w, v,
+                             u, v + 24.0f/h);
+    } else if (r == 2) {
+        float u = (13.0f + 24.0f*state - 3.0f) / w,
+              v = (309.0f - 24.0f*n - 1.0f) / h;
+        sprite_init(&sprite, x, y, 0.3f, 0.3f,
+                             u + 24.0f/w,
+                             v + 24.0f/h,
+                             u, v);
+    } else {
+        float u = (13.0f + 24.0f*(6-state)) / w,
+              v = (309.0f - 24.0f*n - 1.0f) / h;
+        sprite_init(&sprite, x, y, 0.3f, 0.3f,
+                             u, v + 24.0f/h,
+                             u + 24.0f/w, v);
+    }
+
+    draw_sprite(dc, &sprite, texture);
+
 }

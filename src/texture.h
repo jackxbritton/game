@@ -5,6 +5,7 @@
 
 struct Texture {
     char *path;
+    int width, height, channels;
     GLuint gl_texture;
 };
 typedef struct Texture Texture;

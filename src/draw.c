@@ -41,7 +41,7 @@ void draw_context_init(DrawContext *dc, Catalog *catalog, float aspect, int widt
     dc->u_color     = gl_get_uniform(dc->text_shader.gl_program, "color");
     dc->u_transform = gl_get_uniform(dc->text_shader.gl_program, "transform");
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0);
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
     glUniform4f(dc->u_color, 1.0f, 1.0f, 1.0f, 1.0f);

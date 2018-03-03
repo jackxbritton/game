@@ -24,8 +24,7 @@ void texture_destroy(Texture *t) {
 
 void texture_reload(Texture *t) {
 
-    int w, h, n;
-    unsigned char *data = stbi_load(t->path, &w, &h, &n, 0);
+    unsigned char *data = stbi_load(t->path, &t->width, &t->height, &t->channels, 0);
 
     if (data == NULL) {
         DEBUG("Couldn't load image '%s'.", t->path);
@@ -34,29 +33,29 @@ void texture_reload(Texture *t) {
 
     glBindTexture(GL_TEXTURE_2D, t->gl_texture);
 
-    if (n == 1) {
+    if (t->channels == 1) {
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, t->width, t->height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
 
-    } else if (n == 3) {
-
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, data);
-
-    } else if (n == 4) {
+    } else if (t->channels == 3) {
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t->width, t->height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+    } else if (t->channels == 4) {
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t->width, t->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
     } else {
-        DEBUG("n = %d not handled.", n);
+        DEBUG("n = %d not handled.", t->channels);
     }
 
     stbi_image_free(data);

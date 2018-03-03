@@ -10,8 +10,8 @@ struct Sprite {
 };
 typedef struct Sprite Sprite;
 
-void sprite_init(Sprite *sprite, float  x, float  y,
-                                 float  w, float  h,
+void sprite_init(Sprite *sprite, float x, float y,
+                                 float w, float h,
                                  float u1, float v1,
                                  float u2, float v2);
 

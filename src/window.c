@@ -44,7 +44,7 @@ void window_init(Window *w) {
         return;
     }
 
-    SDL_GL_SetSwapInterval(1); // vsync.
+    SDL_GL_SetSwapInterval(GL_TRUE); // vsync.
 
     // GLEW.
     glewExperimental = GL_TRUE;
