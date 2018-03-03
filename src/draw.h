@@ -45,11 +45,12 @@ enum TextAlignment {
 };
 typedef enum TextAlignment TextAlignment;
 
+void draw_set_color(DrawContext *dc, float r, float g, float b, float a);
 void draw_string(DrawContext *dc, Font *font, const char *str, float x, float y, TextAlignment alignment);
 void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alignment);
 
 void draw_sprite(DrawContext *dc, Sprite *sprite, Texture *texture);
 
-void draw_sprite_batch(DrawContext *dc, SpriteBatch *sprite_batch, Texture *texture);
+void draw_sprite_batch(DrawContext *dc, SpriteBatch *sprite_batch, Texture *texture, float x, float y);
 
 #endif

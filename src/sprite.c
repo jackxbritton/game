@@ -21,6 +21,7 @@ void sprite_init(Sprite *sprite, float  x, float  y,
 void sprite_batch_init(SpriteBatch *sb, size_t size) {
     assert(sb != NULL);
     array_init(&sb->sprites, size, sizeof(Sprite));
+    glGenVertexArrays(1, &sb->vao);
     glGenBuffers(1, &sb->vbo);
 }
 
@@ -28,6 +29,7 @@ void sprite_batch_destroy(SpriteBatch *sb) {
     assert(sb != NULL);
     array_destroy(&sb->sprites);
     glDeleteBuffers(1, &sb->vbo);
+    glDeleteVertexArrays(1, &sb->vao);
 }
 
 void sprite_batch_add(SpriteBatch *sb, Sprite *s) {
@@ -41,8 +43,31 @@ void sprite_batch_clear(SpriteBatch *sb) {
     array_clear(&sb->sprites);
 }
 
-void sprite_batch_update_vbo(SpriteBatch *sb) {
+void sprite_batch_update(SpriteBatch *sb) {
     assert(sb != NULL);
+
+    glBindVertexArray(sb->vao);
     glBindBuffer(GL_ARRAY_BUFFER, sb->vbo);
     glBufferData(GL_ARRAY_BUFFER, sb->sprites.count*sizeof(Sprite), sb->sprites.buffer, GL_DYNAMIC_DRAW);
+
+    // Attrib pointers.
+    glVertexAttribPointer(
+        0,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        4*sizeof(GLfloat),
+        0
+    );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        4*sizeof(GLfloat),
+        (void *) (2*sizeof(GLfloat))
+    );
+    glEnableVertexAttribArray(1);
+
 }

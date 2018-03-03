@@ -75,6 +75,13 @@ void draw_clear(DrawContext *dc) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void draw_set_color(DrawContext *dc, float r, float g, float b, float a) {
+    assert(dc != NULL);
+    GLuint gl_program = dc->text_shader.gl_program;
+    if (dc->bound_program != gl_program) glUseProgram(gl_program);
+    glUniform4f(dc->u_color, r, g, b, a);
+}
+
 void draw_string(DrawContext *dc, Font *font, const char *str, float x, float y, TextAlignment alignment) {
 
     assert(dc != NULL);
@@ -174,15 +181,13 @@ void draw_sprite(DrawContext *dc, Sprite *sprite, Texture *texture) {
 
 }
 
-void draw_sprite_batch(DrawContext *dc, SpriteBatch *sprite_batch, Texture *texture) {
+void draw_sprite_batch(DrawContext *dc, SpriteBatch *sprite_batch, Texture *texture, float x, float y) {
 
     assert(dc != NULL);
     assert(sprite_batch != NULL);
     assert(texture != NULL);
 
-    const float s = 1.0f,
-                x = 0.0f,
-                y = 0.0f;
+    const float s = 1.0f;
 
     const GLfloat transform[] = {
            s,         0.0f,    x,
@@ -196,34 +201,7 @@ void draw_sprite_batch(DrawContext *dc, SpriteBatch *sprite_batch, Texture *text
     GLuint gl_program = dc->quad_shader.gl_program;
     if (dc->bound_program != gl_program) glUseProgram(gl_program);
 
-    GLuint vao, vbo;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sprite_batch->sprites.count*sizeof(Sprite), sprite_batch->sprites.buffer, GL_DYNAMIC_DRAW);
-
-    // Attrib pointers.
-    glVertexAttribPointer(
-        0,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        4*sizeof(GLfloat),
-        0
-    );
-    glEnableVertexAttribArray(0);
-    glBindAttribLocation(gl_program, 0, "point");
-    glVertexAttribPointer(
-        1,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        4*sizeof(GLfloat),
-        (void *) (2*sizeof(GLfloat))
-    );
-    glEnableVertexAttribArray(1);
-    glBindAttribLocation(gl_program, 1, "uv");
+    glBindVertexArray(sprite_batch->vao);
 
     glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
     glDrawArrays(GL_TRIANGLES, 0, 6*sprite_batch->sprites.count);

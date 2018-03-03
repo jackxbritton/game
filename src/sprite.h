@@ -27,6 +27,6 @@ void sprite_batch_destroy(SpriteBatch *sprite_batch);
 void sprite_batch_add(SpriteBatch *sprite_batch, Sprite *sprite);
 void sprite_batch_clear(SpriteBatch *sprite_batch);
 
-void sprite_batch_update_vbo(SpriteBatch *sprite_batch);
+void sprite_batch_update(SpriteBatch *sprite_batch);
 
 #endif
