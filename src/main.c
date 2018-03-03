@@ -3,6 +3,8 @@
 #include "draw.h"
 #include "average.h" // For FPS averaging..
 
+#include "physics.h"
+
 struct Spaceship {
     float angle,
           position_x,
@@ -12,9 +14,49 @@ struct Spaceship {
 };
 typedef struct Spaceship Spaceship;
 
-void draw_spaceship(DrawContext *dc, Texture *texture, float x, float y, int n, int state);
+void draw_spaceship(DrawContext *dc, Texture *texture, int spaceship, int flap, float x, float y, float angle);
+
+/*
+
+
+-- THOUGHTS --
+Collision and stuff!
+Colliders will all be in an array or memory pool.
+Functions will operate on this array. Details:
+
+    while dt > max:
+        dt -= max
+        update(max)
+    update(dt)
+
+    eventually broadphase (quadtrees?)
+
+*/
 
 int main(int argc, char *argv[]) {
+
+    // TODO Test physics.c.
+
+    RigidBody rb;
+    rigid_body_init(&rb, 0);
+    rb.collider_type = COLLIDER_CIRCLE;
+    rb.collider.circle.radius = 0.4f;
+
+    Vector2 v;
+    v.x =  4.0f;
+    v.y = -2.0f;
+    Vector2 vn = v;
+    vector2_normalize(&vn);
+    DEBUG("l=%f, l^2=%f, vn=(%f, %f)",
+          vector2_length(&v),
+          vector2_length_squared(&v),
+          vn.x, vn.y);
+
+    return 0;
+
+    
+    // ^ Delete that return statement!
+
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         DEBUG("%s", SDL_GetError());
@@ -77,15 +119,12 @@ int main(int argc, char *argv[]) {
 
     SpriteBatch sprite_batch;
     sprite_batch_init(&sprite_batch, 1);
-    int state     = 0,
-        spaceship = 0;
+    int state;
 
     struct Spaceship player;
-    player.angle = 0.0f;
+    player.angle = M_PI/2.0f;
     player.position_x = 0.0f;
-    player.position_y = 0.0f;
-    player.velocity_x = 0.0f;
-    player.velocity_y = 0.0f;
+    player.position_y = -0.45f;
 
     while (1) {
 
@@ -165,28 +204,18 @@ int main(int argc, char *argv[]) {
 
         // Sprite of spaceship.
 
-        const float rotate_speed = 5.0f;
-        player.angle += (window.input.left - window.input.right) * rotate_speed*window.dt;
-        while (player.angle < 0.0f)       player.angle += 2.0f*M_PI;
-        while (player.angle >= 2.0f*M_PI) player.angle -= 2.0f*M_PI;
-        state = (2.0f*M_PI - player.angle) * 24/(2.0f*M_PI);
-        state = (state + 12) % 24;
-
-        if (window.input.up) {
-            const float acceleration = 0.5f;
-            player.velocity_x += cosf(player.angle)*acceleration*window.dt;
-            player.velocity_y += sinf(player.angle)*acceleration*window.dt;
-        }
-
-        const float speed = 4.0f;
-        player.position_x += player.velocity_x*speed*window.dt;
-        player.position_y += player.velocity_y*speed*window.dt;
+        const float speed = 1.0f;
+        player.position_x += (window.input.right - window.input.left) * speed*window.dt;
 
         snprintf(buffer, 64, "%f", player.angle);
         draw_set_color(&dc, 1.0f, 1.0f, 1.0f, 1.0f);
         draw_string(&dc, &font, buffer, -0.2f, 0.0f, TEXT_ALIGN_CENTER);
 
-        draw_spaceship(&dc, &galaga_texture, player.position_x, player.position_y, spaceship, state);
+        float angle = (float) window.elapsed_ms / 100;
+        while (angle < 0.0f)       angle += 2.0f*M_PI;
+        while (angle >= 2.0f*M_PI) angle -= 2.0f*M_PI;
+        int flap = (window.elapsed_ms / 200) % 2;
+        draw_spaceship(&dc, &galaga_texture, 2, flap, player.position_x, player.position_y, player.angle);
 
         window_redraw(&window);
 
@@ -211,48 +240,56 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void draw_spaceship(DrawContext *dc, Texture *texture, float x, float y, int n, int state) {
+void draw_spaceship(DrawContext *dc, Texture *texture, int spaceship, int flap, float x, float y, float angle) {
+
+    int state = 24 - (int) (angle * 24/(2.0f*M_PI));
+    state = (state + 12) % 24;
 
     const int w = texture->width,
               h = texture->height;
     const int r = state/6;
     state = state % 6;
 
-    const float s = 0.3f;
+    const float s = 0.15f;
     x -= s/2;
     y -= s/2;
 
     // Draw a spaceship.
 
-    Sprite sprite;
+    float u1, v1,
+          u2, v2;
 
-    if (r == 0) {
-        float u = (13.0f + 24.0f*state) / w,
-              v = (309.0f - 24.0f*n) / h;
-        sprite_init(&sprite, x, y, s, s,
-                             u, v,
-                             u + 24.0f/w,
-                             v + 24.0f/h);
+    if (state == 0 && flap) {
+        u1 = (13.0f + 24.0f*7) / w;
+        v1 = (309.0f - 24.0f*spaceship) / h;
+        u2 = u1 + 24.0f/w;
+        v2 = v1 + 24.0f/h;
+    } else if (r == 0) {
+        u1 = (13.0f + 24.0f*state) / w;
+        v1 = (309.0f - 24.0f*spaceship) / h;
+        u2 = u1 + 24.0f/w;
+        v2 = v1 + 24.0f/h;
     } else if (r == 1) {
-        float u = (13.0f + 24.0f*(6-state) - 3.0f) / w,
-              v = (309.0f - 24.0f*n) / h;
-        sprite_init(&sprite, x, y, s, s,
-                             u + 24.0f/w, v,
-                             u, v + 24.0f/h);
+        u1 = (13.0f + 24.0f*(6-state) - 3.0f + 24.0f) / w;
+        v1 = (309.0f - 24.0f*spaceship) / h;
+        u2 = u1 - 24.0f/w;
+        v2 = v1 + 24.0f/h;
     } else if (r == 2) {
-        float u = (13.0f + 24.0f*state - 3.0f) / w,
-              v = (309.0f - 24.0f*n - 1.0f) / h;
-        sprite_init(&sprite, x, y, s, s,
-                             u + 24.0f/w,
-                             v + 24.0f/h,
-                             u, v);
+        u1 = (13.0f + 24.0f*state - 3.0f + 24.0f) / w;
+        v1 = (309.0f - 24.0f*spaceship - 1.0f + 24.0f) / h;
+        u2 = u1 - 24.0f/w;
+        v2 = v1 - 24.0f/h;
     } else {
-        float u = (13.0f + 24.0f*(6-state)) / w,
-              v = (309.0f - 24.0f*n - 1.0f) / h;
-        sprite_init(&sprite, x, y, s, s,
-                             u, v + 24.0f/h,
-                             u + 24.0f/w, v);
+        u1 = (13.0f + 24.0f*(6-state)) / w;
+        v1 = (309.0f - 24.0f*spaceship - 1.0f + 24.0f) / h;
+        u2 = u1 + 24.0f/w;
+        v2 = v1 - 24.0f/h;
     }
+
+    Sprite sprite;
+    sprite_init(&sprite, x, y, s, s,
+                         u1, v1,
+                         u2, v2);
 
     draw_sprite(dc, &sprite, texture);
 

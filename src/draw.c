@@ -31,8 +31,8 @@ void draw_context_init(DrawContext *dc, Catalog *catalog, float aspect, int widt
 
     // Quad shader.
     shader_program_init(&dc->quad_shader,
-                        "../src/shaders/quad.vs.glsl",
-                        "../src/shaders/quad.fs.glsl");
+                        "../src/shaders/sprite.vs.glsl",
+                        "../src/shaders/sprite.fs.glsl");
     catalog_add(dc->catalog, dc->quad_shader.vert_path, shader_program_reload, &dc->quad_shader);
     catalog_add(dc->catalog, dc->quad_shader.frag_path, shader_program_reload, &dc->quad_shader);
 

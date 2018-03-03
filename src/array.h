@@ -14,6 +14,8 @@ typedef struct Array Array;
 void array_init(Array *array, size_t nmemb, size_t size);
 void array_destroy(Array *array);
 
+void array_copy(Array *dest, Array *src);
+
 void array_add(Array *array, void *item);
 void array_clear(Array *array);
 

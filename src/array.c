@@ -26,6 +26,14 @@ void array_destroy(Array *array) {
     free(array->buffer);
 }
 
+void array_copy(Array *dest, Array *src) {
+    assert(dest != NULL);
+    assert(src != NULL);
+    array_init(dest, src->allocated, src->slot_size);
+    memcpy(dest->buffer, src->buffer, src->count*src->slot_size);
+    dest->count = src->count;
+}
+
 void array_add(Array *array, void *item) {
 
     assert(array != NULL);
