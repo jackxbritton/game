@@ -3,6 +3,15 @@
 #include "draw.h"
 #include "average.h" // For FPS averaging..
 
+struct Spaceship {
+    float angle,
+          position_x,
+          position_y,
+          velocity_x,
+          velocity_y;
+};
+typedef struct Spaceship Spaceship;
+
 void draw_spaceship(DrawContext *dc, Texture *texture, float x, float y, int n, int state);
 
 int main(int argc, char *argv[]) {
@@ -70,6 +79,13 @@ int main(int argc, char *argv[]) {
     sprite_batch_init(&sprite_batch, 1);
     int state     = 0,
         spaceship = 0;
+
+    struct Spaceship player;
+    player.angle = 0.0f;
+    player.position_x = 0.0f;
+    player.position_y = 0.0f;
+    player.velocity_x = 0.0f;
+    player.velocity_y = 0.0f;
 
     while (1) {
 
@@ -149,14 +165,28 @@ int main(int argc, char *argv[]) {
 
         // Sprite of spaceship.
 
-        state = (window.elapsed_ms / 100) % 24;
-        if (window.input.up) spaceship = (spaceship + 1) % 12;
+        const float rotate_speed = 5.0f;
+        player.angle += (window.input.left - window.input.right) * rotate_speed*window.dt;
+        while (player.angle < 0.0f)       player.angle += 2.0f*M_PI;
+        while (player.angle >= 2.0f*M_PI) player.angle -= 2.0f*M_PI;
+        state = (2.0f*M_PI - player.angle) * 24/(2.0f*M_PI);
+        state = (state + 12) % 24;
 
-        snprintf(buffer, 64, "%d", state);
+        if (window.input.up) {
+            const float acceleration = 0.5f;
+            player.velocity_x += cosf(player.angle)*acceleration*window.dt;
+            player.velocity_y += sinf(player.angle)*acceleration*window.dt;
+        }
+
+        const float speed = 4.0f;
+        player.position_x += player.velocity_x*speed*window.dt;
+        player.position_y += player.velocity_y*speed*window.dt;
+
+        snprintf(buffer, 64, "%f", player.angle);
         draw_set_color(&dc, 1.0f, 1.0f, 1.0f, 1.0f);
         draw_string(&dc, &font, buffer, -0.2f, 0.0f, TEXT_ALIGN_CENTER);
 
-        draw_spaceship(&dc, &galaga_texture, 0.0f, 0.0f, spaceship, state);
+        draw_spaceship(&dc, &galaga_texture, player.position_x, player.position_y, spaceship, state);
 
         window_redraw(&window);
 
@@ -188,6 +218,10 @@ void draw_spaceship(DrawContext *dc, Texture *texture, float x, float y, int n, 
     const int r = state/6;
     state = state % 6;
 
+    const float s = 0.3f;
+    x -= s/2;
+    y -= s/2;
+
     // Draw a spaceship.
 
     Sprite sprite;
@@ -195,27 +229,27 @@ void draw_spaceship(DrawContext *dc, Texture *texture, float x, float y, int n, 
     if (r == 0) {
         float u = (13.0f + 24.0f*state) / w,
               v = (309.0f - 24.0f*n) / h;
-        sprite_init(&sprite, x, y, 0.3f, 0.3f,
+        sprite_init(&sprite, x, y, s, s,
                              u, v,
                              u + 24.0f/w,
                              v + 24.0f/h);
     } else if (r == 1) {
         float u = (13.0f + 24.0f*(6-state) - 3.0f) / w,
               v = (309.0f - 24.0f*n) / h;
-        sprite_init(&sprite, x, y, 0.3f, 0.3f,
+        sprite_init(&sprite, x, y, s, s,
                              u + 24.0f/w, v,
                              u, v + 24.0f/h);
     } else if (r == 2) {
         float u = (13.0f + 24.0f*state - 3.0f) / w,
               v = (309.0f - 24.0f*n - 1.0f) / h;
-        sprite_init(&sprite, x, y, 0.3f, 0.3f,
+        sprite_init(&sprite, x, y, s, s,
                              u + 24.0f/w,
                              v + 24.0f/h,
                              u, v);
     } else {
         float u = (13.0f + 24.0f*(6-state)) / w,
               v = (309.0f - 24.0f*n - 1.0f) / h;
-        sprite_init(&sprite, x, y, 0.3f, 0.3f,
+        sprite_init(&sprite, x, y, s, s,
                              u, v + 24.0f/h,
                              u + 24.0f/w, v);
     }
