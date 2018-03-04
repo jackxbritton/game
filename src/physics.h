@@ -10,16 +10,23 @@ struct Vector2 {
 };
 typedef struct Vector2 Vector2;
 
-float vector2_length(Vector2 *v);
-float vector2_length_squared(Vector2 *v);
-void vector2_normalize(Vector2 *v);
+Vector2 vector2_add(const Vector2 *a, const Vector2 *b);
+Vector2 vector2_sub(const Vector2 *a, const Vector2 *b);
+Vector2 vector2_mul(const Vector2 *v, float s);
+Vector2 vector2_div(const Vector2 *v, float s);
 
-// Colliders.
+float vector2_length(const Vector2 *v);
+float vector2_length_squared(const Vector2 *v);
+
+Vector2 vector2_normalize(const Vector2 *v);
+
+float vector2_dot(const Vector2 *a, const Vector2 *b);
+
+// Colliders. TODO Add ones other than circles.
 
 enum ColliderType {
     COLLIDER_UNDEFINED,
-    COLLIDER_CIRCLE,
-    COLLIDER_RECT
+    COLLIDER_CIRCLE
 };
 typedef enum ColliderType ColliderType;
 
@@ -27,11 +34,6 @@ struct CircleCollider {
     float radius;
 };
 typedef struct CircleCollider CircleCollider;
-
-struct RectCollider {
-    float width, height;
-};
-typedef struct RectCollider RectCollider;
 
 // Rigid body.
 
@@ -47,14 +49,16 @@ struct RigidBody {
     ColliderType collider_type;
     union {
         CircleCollider circle;
-        RectCollider rect;
     } collider;
+
+    void (*callback)(void *a_data, void *b_data);
+    void *callback_data;
 
 };
 typedef struct RigidBody RigidBody;
 
 void rigid_body_init(RigidBody *body, int flags);
 
-void rigid_bodies_update(Array *array, float dt);
+void rigid_bodies_step(Array *array, float dt);
 
 #endif

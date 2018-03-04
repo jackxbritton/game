@@ -7,7 +7,7 @@
 
 struct CatalogEntry {
     int wd;
-    void (*callback)();
+    void (*callback)(void *arg);
     void *callback_arg;
 };
 typedef struct CatalogEntry CatalogEntry;

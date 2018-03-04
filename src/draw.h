@@ -26,6 +26,8 @@ struct DrawContext {
 
     Catalog *catalog;
 
+    GLuint circle_texture; // TODO
+
 };
 typedef struct DrawContext DrawContext;
 
@@ -52,5 +54,7 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
 void draw_sprite(DrawContext *dc, Sprite *sprite, Texture *texture);
 
 void draw_sprite_batch(DrawContext *dc, SpriteBatch *sprite_batch, Texture *texture, float x, float y);
+
+void draw_circle(DrawContext *dc, float x, float y, float r);
 
 #endif

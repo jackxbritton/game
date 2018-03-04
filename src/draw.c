@@ -1,11 +1,55 @@
 #include "draw.h"
 #include "misc.h"
 #include <assert.h>
+#include <math.h>
 
 static GLint gl_get_uniform(GLuint program, const char *id) {
     GLint out = glGetUniformLocation(program, id);
     if (out == -1) DEBUG("Couldn't find uniform '%s'.", id);
     return out;
+}
+
+static GLuint make_circle_texture(int size, float aa_threshold) {
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    if (texture == 0) {
+        DEBUG("glGenTextures failed.");
+        return 0;
+    }
+
+    unsigned char *data = malloc(size*size);
+    if (data == NULL) {
+        DEBUG("malloc failed.");
+        return 0;
+    }
+
+    const float r = size/2.0f;
+
+    for (int x = 0; x < size; x++) {
+        for (int y = 0; y < size; y++) {
+            const float dx = x - r;
+            const float dy = y - r;
+            float d = sqrtf(dx*dx + dy*dy);
+            d -= r;
+            if (d < 0) {
+                if (d > -aa_threshold) data[x + y*size] = 0xFF * -d/aa_threshold;
+                else                   data[x + y*size] = 0xFF;
+            } else {
+                data[x + y*size] = 0x00;
+            }
+        }
+    }
+
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+
+    free(data);
+
+    return texture;
 }
 
 void draw_context_init(DrawContext *dc, Catalog *catalog, float aspect, int width, int height, float hdpi, float vdpi) {
@@ -36,6 +80,9 @@ void draw_context_init(DrawContext *dc, Catalog *catalog, float aspect, int widt
     catalog_add(dc->catalog, dc->quad_shader.vert_path, shader_program_reload, &dc->quad_shader);
     catalog_add(dc->catalog, dc->quad_shader.frag_path, shader_program_reload, &dc->quad_shader);
 
+    // Load a circle mask texture.
+    dc->circle_texture = make_circle_texture(64, 2);
+
     // Uniforms.
     dc->u_texture   = gl_get_uniform(dc->text_shader.gl_program, "texture");
     dc->u_color     = gl_get_uniform(dc->text_shader.gl_program, "color");
@@ -44,7 +91,6 @@ void draw_context_init(DrawContext *dc, Catalog *catalog, float aspect, int widt
     glClearColor(0.2f, 0.2f, 0.2f, 1.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
-    glUniform4f(dc->u_color, 1.0f, 1.0f, 1.0f, 1.0f);
 
 }
 
@@ -164,7 +210,7 @@ void draw_sprite(DrawContext *dc, Sprite *sprite, Texture *texture) {
         0
     );
     glEnableVertexAttribArray(0);
-    glBindAttribLocation(gl_program, 0, "point");
+
     glVertexAttribPointer(
         1,
         2,
@@ -174,7 +220,6 @@ void draw_sprite(DrawContext *dc, Sprite *sprite, Texture *texture) {
         (void *) (2*sizeof(GLfloat))
     );
     glEnableVertexAttribArray(1);
-    glBindAttribLocation(gl_program, 1, "uv");
 
     glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -205,5 +250,60 @@ void draw_sprite_batch(DrawContext *dc, SpriteBatch *sprite_batch, Texture *text
 
     glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
     glDrawArrays(GL_TRIANGLES, 0, 6*sprite_batch->sprites.count);
+
+}
+
+void draw_circle(DrawContext *dc, float x, float y, float r) {
+
+    assert(dc != NULL);
+
+    const float s = r;
+
+    const GLfloat transform[] = {
+           s,         0.0f,    x,
+        0.0f, s*dc->aspect,    y,
+        0.0f,         0.0f, 1.0f
+    };
+
+    GLuint gl_texture = dc->circle_texture;
+    if (dc->bound_texture != gl_texture) glBindTexture(GL_TEXTURE_2D, gl_texture);
+
+    GLuint gl_program = dc->text_shader.gl_program;
+    if (dc->bound_program != gl_program) glUseProgram(gl_program);
+
+    Sprite sprite;
+    sprite_init(&sprite, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+
+    GLuint vao, vbo;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Sprite), sprite.buffer, GL_DYNAMIC_DRAW);
+
+    // Attrib pointers.
+    glVertexAttribPointer(
+        0,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        4*sizeof(GLfloat),
+        0
+    );
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        4*sizeof(GLfloat),
+        (void *) (2*sizeof(GLfloat))
+    );
+    glEnableVertexAttribArray(1);
+
+    glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
 
 }

@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
         c2.collider.circle.radius = 0.01f;
         array_add(&rigid_bodies, &c2);
 
-        rigid_bodies_update(&rigid_bodies, window.dt); // Update.
+        rigid_bodies_step(&rigid_bodies, window.dt); // Update.
 
         rigid_bodies.count--; // Pop.
 
@@ -205,6 +205,9 @@ int main(int argc, char *argv[]) {
         while (angle >= 2.0f*M_PI) angle -= 2.0f*M_PI;
         int flap = (window.elapsed_ms / 200) % 2;
         draw_spaceship(&dc, &galaga_texture, 2, flap, player.position_x, player.position_y, player.angle);
+
+        draw_set_color(&dc, 0.2f, 0.3f, 0.7f, 0.5f);
+        draw_circle(&dc, x, y, 0.1f);
 
         window_redraw(&window);
 
