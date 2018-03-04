@@ -81,7 +81,7 @@ void draw_context_init(DrawContext *dc, Catalog *catalog, float aspect, int widt
     catalog_add(dc->catalog, dc->quad_shader.frag_path, shader_program_reload, &dc->quad_shader);
 
     // Load a circle mask texture.
-    dc->circle_texture = make_circle_texture(64, 2);
+    dc->circle_texture = make_circle_texture(512, 1.5);
 
     // Uniforms.
     dc->u_texture   = gl_get_uniform(dc->text_shader.gl_program, "texture");
@@ -257,12 +257,13 @@ void draw_circle(DrawContext *dc, float x, float y, float r) {
 
     assert(dc != NULL);
 
-    const float s = r;
+    const float sx = 2.0f*r;
+    const float sy = 2.0f*r*dc->aspect;
 
     const GLfloat transform[] = {
-           s,         0.0f,    x,
-        0.0f, s*dc->aspect,    y,
-        0.0f,         0.0f, 1.0f
+          sx, 0.0f, x,
+        0.0f,   sy, y*dc->aspect,
+        0.0f, 0.0f, 1.0f
     };
 
     GLuint gl_texture = dc->circle_texture;

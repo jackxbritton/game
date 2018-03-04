@@ -2,7 +2,6 @@
 #include "window.h"
 #include "draw.h"
 #include "average.h" // For FPS averaging..
-
 #include "physics.h"
 
 struct Spaceship {
@@ -59,9 +58,6 @@ int main(int argc, char *argv[]) {
     texture_init(&galaga_texture, "../assets/galaga.png");
     catalog_add(&catalog, galaga_texture.path, texture_reload, &galaga_texture);
 
-    float x = 0.0f,
-          y = 0.0f;
-
     // FPS counter stuff.
     const int update_fps_every = 50;
     int last_fps_update = 0;
@@ -90,15 +86,24 @@ int main(int argc, char *argv[]) {
 
     Array rigid_bodies;
     array_init(&rigid_bodies, 2, sizeof(RigidBody));
+    RigidBody rb;
+    array_add(&rigid_bodies, &rb);
+    array_add(&rigid_bodies, &rb);
 
-    RigidBody c1;
-    rigid_body_init(&c1, 0);
-    c1.position.x = 0.0f;
-    c1.position.y = 0.0f;
-    c1.collider_type = COLLIDER_CIRCLE;
-    c1.collider.circle.radius = 0.3f;
+    RigidBody *cursor = array_get(&rigid_bodies, 0);
+    RigidBody *ball   = array_get(&rigid_bodies, 1);
 
-    array_add(&rigid_bodies, &c1);
+    rigid_body_init(cursor, 0);
+    cursor->position.x = 0.0f;
+    cursor->position.y = 0.0f;
+    cursor->collider_type = COLLIDER_CIRCLE;
+    cursor->collider.circle.radius = 0.05f;
+
+    rigid_body_init(ball, 0);
+    ball->position.x = 0.4f;
+    ball->position.y = 0.4f;
+    ball->collider_type = COLLIDER_CIRCLE;
+    ball->collider.circle.radius = 0.1f;
 
     while (1) {
 
@@ -107,22 +112,16 @@ int main(int argc, char *argv[]) {
 
         catalog_service(&catalog); // Make sure we hotload stuff.
 
-        //const float speed = 2.0f;
-        //y -= window.input.down  * speed*dc.aspect * window.dt;
-        //y += window.input.up    * speed*dc.aspect * window.dt;
-        //x -= window.input.left  * speed * window.dt;
-        //x += window.input.right * speed * window.dt;
-
         // Adjust mouse position.
-        int mouse_x = window.input.mouse_x + (dc.width  - window.width )/2;
+        int mouse_x = window.input.mouse_x + (dc.width - window.width)/2;
         if      (mouse_x < 0)           mouse_x = 0;
         else if (mouse_x > dc.width-1)  mouse_x = dc.width-1;
         int mouse_y = window.input.mouse_y + (dc.height - window.height)/2;
         if      (mouse_y < 0)           mouse_y = 0;
         else if (mouse_y > dc.height-1) mouse_y = dc.height-1;
 
-        x = (float) mouse_x / dc.width  * 2.0f - 1.0f;
-        y = (float) mouse_y / dc.height * 2.0f - 1.0f;
+        float x = (float) mouse_x / dc.width  * 2.0f - 1.0f;
+        float y = (float) mouse_y / dc.height * 2.0f - 1.0f;
         y = -y;
 
         average_add(&average, 1.0f / window.dt);
@@ -141,21 +140,6 @@ int main(int argc, char *argv[]) {
 
         }
 
-        // TODO Test rigid body.
-
-        // Add a second circle.
-        RigidBody c2;
-        rigid_body_init(&c2, 0);
-        c2.position.x = x;
-        c2.position.y = y;
-        c2.collider_type = COLLIDER_CIRCLE;
-        c2.collider.circle.radius = 0.01f;
-        array_add(&rigid_bodies, &c2);
-
-        rigid_bodies_step(&rigid_bodies, window.dt); // Update.
-
-        rigid_bodies.count--; // Pop.
-
         draw_clear(&dc);
 
         // Static text.
@@ -171,11 +155,11 @@ int main(int argc, char *argv[]) {
         draw_text(&dc, &fps_text, -1.0f + 0.1f, -1.0f + 0.1f*dc.aspect, TEXT_ALIGN_LEFT);
 
         // Moving text.
-        snprintf(buffer, 64, "(%d, %d)", mouse_x, mouse_y);
+        snprintf(buffer, 64, "(%1.2f, %1.2f)", x, y);
         draw_set_color(&dc, 0.1f, 0.1f, 0.1f, 1.0f);
-        draw_string(&dc, &font, buffer, x+0.01f, y+0.01f, TEXT_ALIGN_CENTER);
+        draw_string(&dc, &font, buffer, 0.5f + 0.01f, -0.9f + 0.01f, TEXT_ALIGN_CENTER);
         draw_set_color(&dc, 0.1f, 0.8f, 0.9f, 1.0f);
-        draw_string(&dc, &font, buffer, x, y, TEXT_ALIGN_CENTER);
+        draw_string(&dc, &font, buffer, 0.5f, -0.9f, TEXT_ALIGN_CENTER);
 
         // Sprite of man.
         if (state != (window.elapsed_ms / 100) % 4) {
@@ -189,12 +173,11 @@ int main(int argc, char *argv[]) {
 
         }
 
-        draw_sprite_batch(&dc, &sprite_batch, &dude_texture, x, y);
+        draw_sprite_batch(&dc, &sprite_batch, &dude_texture, -0.4f, -0.4f);
 
         // Sprite of spaceship.
 
-        const float speed = 1.0f;
-        player.position_x += (window.input.right - window.input.left) * speed*window.dt;
+        player.position_x += (window.input.right - window.input.left) * window.dt;
 
         snprintf(buffer, 64, "%f", player.angle);
         draw_set_color(&dc, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -206,8 +189,21 @@ int main(int argc, char *argv[]) {
         int flap = (window.elapsed_ms / 200) % 2;
         draw_spaceship(&dc, &galaga_texture, 2, flap, player.position_x, player.position_y, player.angle);
 
-        draw_set_color(&dc, 0.2f, 0.3f, 0.7f, 0.5f);
-        draw_circle(&dc, x, y, 0.1f);
+        // TODO Rigid bodies!
+
+        const float acceleration = 2.0f;
+        cursor->velocity.x -= window.input.left  * acceleration*window.dt;
+        cursor->velocity.x += window.input.right * acceleration*window.dt;
+        cursor->velocity.y -= window.input.down  * acceleration*window.dt;
+        cursor->velocity.y += window.input.up    * acceleration*window.dt;
+
+        rigid_bodies_step(&rigid_bodies, window.dt);
+
+        draw_set_color(&dc, 0.2f, 0.3f, 0.7f, 1.0f);
+        draw_circle(&dc, cursor->position.x, cursor->position.y, cursor->collider.circle.radius);
+
+        draw_set_color(&dc, 0.8f, 0.2f, 0.2f, 1.0f);
+        draw_circle(&dc, ball->position.x, ball->position.y, ball->collider.circle.radius);
 
         window_redraw(&window);
 
