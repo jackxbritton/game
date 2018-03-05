@@ -105,7 +105,7 @@ RigidBody *physics_scene_add(PhysicsScene *scene) {
     array_add(&scene->rigid_bodies, NULL);
     RigidBody *body = array_get(&scene->rigid_bodies, scene->rigid_bodies.count-1);
 
-    body->flags = flags;
+    body->flags = 0;
     body->collider_type = COLLIDER_UNDEFINED;
 
     body->callback = NULL;
