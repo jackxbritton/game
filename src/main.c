@@ -84,22 +84,17 @@ int main(int argc, char *argv[]) {
 
     // TODO Test rigid bodies.
 
-    Array rigid_bodies;
-    array_init(&rigid_bodies, 2, sizeof(RigidBody));
-    RigidBody rb;
-    array_add(&rigid_bodies, &rb);
-    array_add(&rigid_bodies, &rb);
+    PhysicsScene physics_scene;
+    physics_scene_init(&physics_scene);
 
-    RigidBody *cursor = array_get(&rigid_bodies, 0);
-    RigidBody *ball   = array_get(&rigid_bodies, 1);
+    RigidBody *cursor = physics_scene_add(&physics_scene);
+    RigidBody *ball   = physics_scene_add(&physics_scene);
 
-    rigid_body_init(cursor, 0);
     cursor->position.x = 0.0f;
     cursor->position.y = 0.0f;
     cursor->collider_type = COLLIDER_CIRCLE;
     cursor->collider.circle.radius = 0.05f;
 
-    rigid_body_init(ball, 0);
     ball->position.x = 0.4f;
     ball->position.y = 0.4f;
     ball->collider_type = COLLIDER_CIRCLE;
@@ -193,7 +188,7 @@ int main(int argc, char *argv[]) {
         cursor->velocity.y -= window.input.down  * acceleration*window.dt;
         cursor->velocity.y += window.input.up    * acceleration*window.dt;
 
-        rigid_bodies_step(&rigid_bodies, window.dt);
+        physics_scene_step(&physics_scene, window.dt);
 
         draw_set_color(&dc, 0.2f, 0.3f, 0.7f, 1.0f);
         draw_circle(&dc, cursor->position.x, cursor->position.y, cursor->collider.circle.radius);
@@ -205,7 +200,7 @@ int main(int argc, char *argv[]) {
 
     }
 
-    array_destroy(&rigid_bodies);
+    physics_scene_destroy(&physics_scene);
 
     sprite_batch_destroy(&sprite_batch);
     texture_destroy(&dude_texture);

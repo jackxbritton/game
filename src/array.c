@@ -37,7 +37,6 @@ void array_copy(Array *dest, Array *src) {
 void array_add(Array *array, void *item) {
 
     assert(array != NULL);
-    assert(item != NULL);
 
     // Resize array?
     if (array->count == array->allocated) {
@@ -50,7 +49,7 @@ void array_add(Array *array, void *item) {
         }
     }
 
-    memcpy(&array->buffer[array->count*array->slot_size], item, array->slot_size);
+    if (item != NULL) memcpy(&array->buffer[array->count*array->slot_size], item, array->slot_size);
     array->count++;
 
 }

@@ -39,8 +39,17 @@ struct RigidBody {
 };
 typedef struct RigidBody RigidBody;
 
-void rigid_body_init(RigidBody *body, int flags);
+// Physics scene.
 
-void rigid_bodies_step(Array *array, float dt);
+struct PhysicsScene {
+    Array rigid_bodies;
+};
+typedef struct PhysicsScene PhysicsScene;
+
+void physics_scene_init(PhysicsScene *scene);
+void physics_scene_destroy(PhysicsScene *scene);
+RigidBody *physics_scene_add(PhysicsScene *scene);
+
+void physics_scene_step(PhysicsScene *scene, float dt);
 
 #endif

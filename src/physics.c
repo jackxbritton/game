@@ -6,23 +6,15 @@
 
 void rigid_body_init(RigidBody *body, int flags) {
 
-    body->flags = flags;
-    body->collider_type = COLLIDER_UNDEFINED;
-
-    body->callback = NULL;
-    body->callback_data = NULL;
-
-    body->position.x = 0.0f;
-    body->position.y = 0.0f;
-    body->velocity.x = 0.0f;
-    body->velocity.y = 0.0f;
 
 }
 
-static void step(Array *array, float dt) {
+static void step(PhysicsScene *scene, float dt) {
 
     // TODO Binary search through dt for sub-frame collision detection.
     // TODO Iterate over collision detection a few times.
+
+    Array *array = &scene->rigid_bodies;
 
     for (int i = 0; i < array->count; i++) {
         for (int j = 0; j < i; j++) {
@@ -87,15 +79,42 @@ static void step(Array *array, float dt) {
     }
 }
 
-void rigid_bodies_step(Array *array, float dt) {
+void physics_scene_step(PhysicsScene *scene, float dt) {
 
-    const float dt_max = 0.1f; // 10 fps.
+    const float dt_max = 0.1f; // 10 fps minimum.
 
     while (dt > dt_max) {
         dt -= dt_max;
-        step(array, dt_max);
+        step(scene, dt_max);
     }
 
-    step(array, dt);
+    step(scene, dt);
 
+}
+
+void physics_scene_init(PhysicsScene *scene) {
+    array_init(&scene->rigid_bodies, 16, sizeof(RigidBody));
+}
+
+void physics_scene_destroy(PhysicsScene *scene) {
+    array_destroy(&scene->rigid_bodies);
+}
+
+RigidBody *physics_scene_add(PhysicsScene *scene) {
+
+    array_add(&scene->rigid_bodies, NULL);
+    RigidBody *body = array_get(&scene->rigid_bodies, scene->rigid_bodies.count-1);
+
+    body->flags = flags;
+    body->collider_type = COLLIDER_UNDEFINED;
+
+    body->callback = NULL;
+    body->callback_data = NULL;
+
+    body->position.x = 0.0f;
+    body->position.y = 0.0f;
+    body->velocity.x = 0.0f;
+    body->velocity.y = 0.0f;
+
+    return body;
 }
