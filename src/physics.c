@@ -2,58 +2,6 @@
 #include "misc.h"
 #include <math.h>
 
-// Vector2 stuff.
-
-Vector2 vector2_add(const Vector2 *a, const Vector2 *b) {
-    Vector2 out;
-    out.x = a->x + b->x;
-    out.y = a->y + b->y;
-    return out;
-}
-Vector2 vector2_sub(const Vector2 *a, const Vector2 *b) {
-    Vector2 out;
-    out.x = a->x - b->x;
-    out.y = a->y - b->y;
-    return out;
-}
-Vector2 vector2_mul(const Vector2 *v, float s) {
-    Vector2 out;
-    out.x = v->x * s;
-    out.y = v->y * s;
-    return out;
-}
-Vector2 vector2_div(const Vector2 *v, float s) {
-    Vector2 out;
-    out.x = v->x / s;
-    out.y = v->y / s;
-    return out;
-}
-
-float vector2_length(const Vector2 *v) {
-    return sqrtf(v->x*v->x + v->y*v->y);
-}
-
-float vector2_length_squared(const Vector2 *v) {
-    return v->x*v->x + v->y*v->y;
-}
-
-Vector2 vector2_normalize(const Vector2 *v) {
-    Vector2 out;
-    float l = sqrtf(v->x*v->x + v->y*v->y);
-    if (l == 0.0f) {
-        out.x = 0.0f;
-        out.y = 0.0f;
-    } else {
-        out.x = v->x / l;
-        out.y = v->y / l;
-    }
-    return out;
-}
-
-float vector2_dot(const Vector2 *a, const Vector2 *b) {
-    return a->x*b->x + a->y*b->y;
-}
-
 // Rigid body stuff.
 
 void rigid_body_init(RigidBody *body, int flags) {
@@ -75,12 +23,6 @@ static void step(Array *array, float dt) {
 
     // TODO Binary search through dt for sub-frame collision detection.
     // TODO Iterate over collision detection a few times.
-
-    for (int i = 0; i < array->count; i++) {
-        RigidBody *rb = array_get(array, i);
-        rb->position.x += rb->velocity.x * dt;
-        rb->position.y += rb->velocity.y * dt;
-    }
 
     for (int i = 0; i < array->count; i++) {
         for (int j = 0; j < i; j++) {
@@ -108,8 +50,7 @@ static void step(Array *array, float dt) {
                     impulse.x = 0.0f;
                     impulse.y = 0.0f;
                 } else {
-                    impulse.x = contact_normal.x*contact_speed;
-                    impulse.y = contact_normal.y*contact_speed;
+                    impulse = vector2_mul(&contact_normal, contact_speed);
                 }
 
             } else {
@@ -122,12 +63,27 @@ static void step(Array *array, float dt) {
             if (b->callback != NULL) b->callback(b->callback_data, a->callback_data);
 
             // Apply the impulse vectors.
-            a->velocity.x -= impulse.x/2.0f;
-            a->velocity.y -= impulse.y/2.0f;
-            b->velocity.x += impulse.x/2.0f;
-            b->velocity.y += impulse.y/2.0f;
+            Vector2 a_impulse = vector2_div(&impulse, -2.0f);
+            a->velocity = vector2_add(&a->velocity, &a_impulse);
+            Vector2 b_impulse = vector2_div(&impulse, 2.0f);
+            b->velocity = vector2_add(&b->velocity, &b_impulse);
 
         }
+    }
+
+    // Position = velocity * time.
+    for (int i = 0; i < array->count; i++) {
+
+        RigidBody *rb = array_get(array, i);
+        rb->position.x += rb->velocity.x * dt;
+        rb->position.y += rb->velocity.y * dt;
+
+        // Friction.
+        const float friction = 0.7f;
+        Vector2 norm = vector2_normalize(&rb->velocity);
+        float speed = vector2_length(&rb->velocity) - friction*dt;
+        if (speed < 0.0f) speed = 0.0f;
+        rb->velocity = vector2_mul(&norm, speed);
     }
 }
 

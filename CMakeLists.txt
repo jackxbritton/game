@@ -19,5 +19,6 @@ add_executable(${BIN} src/main.c
                       src/text.c
                       src/draw.c
                       src/average.c
+                      src/vector_math.c
                       src/physics.c)
 target_link_libraries(${BIN} m SDL2 GL GLEW freetype harfbuzz)

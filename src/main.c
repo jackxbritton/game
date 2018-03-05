@@ -179,10 +179,6 @@ int main(int argc, char *argv[]) {
 
         player.position_x += (window.input.right - window.input.left) * window.dt;
 
-        snprintf(buffer, 64, "%f", player.angle);
-        draw_set_color(&dc, 1.0f, 1.0f, 1.0f, 1.0f);
-        draw_string(&dc, &font, buffer, -0.2f, 0.0f, TEXT_ALIGN_CENTER);
-
         float angle = (float) window.elapsed_ms / 100;
         while (angle < 0.0f)       angle += 2.0f*M_PI;
         while (angle >= 2.0f*M_PI) angle -= 2.0f*M_PI;
@@ -202,7 +198,7 @@ int main(int argc, char *argv[]) {
         draw_set_color(&dc, 0.2f, 0.3f, 0.7f, 1.0f);
         draw_circle(&dc, cursor->position.x, cursor->position.y, cursor->collider.circle.radius);
 
-        draw_set_color(&dc, 0.8f, 0.2f, 0.2f, 1.0f);
+        draw_set_color(&dc, 0.6f, 0.1f, 0.1f, 1.0f);
         draw_circle(&dc, ball->position.x, ball->position.y, ball->collider.circle.radius);
 
         window_redraw(&window);
