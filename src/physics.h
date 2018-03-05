@@ -43,6 +43,7 @@ typedef struct RigidBody RigidBody;
 
 struct PhysicsScene {
     Array rigid_bodies;
+    Array rigid_bodies_backup;
 };
 typedef struct PhysicsScene PhysicsScene;
 

@@ -26,10 +26,35 @@ void array_destroy(Array *array) {
     free(array->buffer);
 }
 
-void array_copy(Array *dest, Array *src) {
+void array_resize(Array *array, size_t size) {
+    assert(array != NULL);
+    assert(size > 0);
+
+    array->allocated = size;
+    errno = 0;
+    array->buffer = realloc(array->buffer, array->allocated*array->slot_size);
+    if (errno == ENOMEM) {
+        DEBUG("realloc failed.");
+        return;
+    }
+
+    if (array->count > array->allocated) array->count = array->allocated;
+
+}
+
+void array_clone(Array *dest, Array *src) {
     assert(dest != NULL);
     assert(src != NULL);
     array_init(dest, src->allocated, src->slot_size);
+    memcpy(dest->buffer, src->buffer, src->count*src->slot_size);
+    dest->count = src->count;
+}
+
+void array_copy(Array *dest, Array *src) {
+    assert(dest != NULL);
+    assert(src != NULL);
+    assert(src->slot_size == dest->slot_size);
+    if (dest->allocated < src->count) array_resize(dest, src->count);
     memcpy(dest->buffer, src->buffer, src->count*src->slot_size);
     dest->count = src->count;
 }
