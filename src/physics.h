@@ -7,8 +7,9 @@
 // Colliders. TODO Add ones other than circles.
 
 enum ColliderType {
-    COLLIDER_UNDEFINED,
-    COLLIDER_CIRCLE
+    COLLIDER_CIRCLE    = 0,
+    COLLIDER_RECT      = 1,
+    COLLIDER_UNDEFINED = 2
 };
 typedef enum ColliderType ColliderType;
 
@@ -16,6 +17,12 @@ struct CircleCollider {
     float radius;
 };
 typedef struct CircleCollider CircleCollider;
+
+struct RectCollider {
+    float x, y,
+          width, height;
+};
+typedef struct RectCollider RectCollider;
 
 // Rigid body.
 

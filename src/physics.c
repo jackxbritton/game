@@ -8,10 +8,91 @@
    broadphase (quadtrees?)
 
    SHORT TERM
-   RectCollider
-   callback functions
+   Jump table.
+   Rect collider.
 
 */
+
+// Collision test functions and jump table.
+
+static int collision_test_circle_circle(RigidBody *a, RigidBody *b) {
+
+    const float ar = a->collider.circle.radius;
+    const float br = b->collider.circle.radius;
+
+    const Vector2 diff = vector2_sub(a->position, b->position);
+    const float diff_len = vector2_length(diff);
+    const float resolution_len = ar + br - diff_len;
+    if (resolution_len > 0.0f) return 1; // There was a collision.
+    return 0;
+}
+
+// TODO
+static int collision_test_circle_rect(RigidBody *a, RigidBody *b) {}
+static int collision_test_rect_circle(RigidBody *a, RigidBody *b) {}
+static int collision_test_rect_rect(RigidBody *a, RigidBody *b) {}
+
+// To look up a collision test function, use collision_test_table[a_type][b_type].
+static int (*collision_test_table[][COLLIDER_UNDEFINED])(RigidBody *, RigidBody *) = {
+    { collision_test_circle_circle, collision_test_circle_rect },
+    { collision_test_rect_circle,   collision_test_rect_rect }
+};
+
+static int collision_test(Array *array) {
+    for (int i = 0; i < array->count; i++) {
+        for (int j = 0; j < i; j++) {
+            RigidBody *a = array_get(array, i);
+            RigidBody *b = array_get(array, j);
+            if (collision_test_table[a->collider_type][b->collider_type](a, b)) return 1;
+        }
+    }
+    return 0;
+}
+
+// Collision resolution functions and jump table.
+
+static int collision_resolve_circle_circle(RigidBody *a, RigidBody *b) {
+
+    const float ar = a->collider.circle.radius;
+    const float br = b->collider.circle.radius;
+
+    const Vector2 diff = vector2_sub(a->position, b->position);
+    const float diff_len = vector2_length(diff);
+    const float resolution_len = ar + br - diff_len;
+    if (resolution_len <= 0.0f) return 0; // No collision here.
+
+    const Vector2 contact_normal = vector2_normalize(diff);
+    const Vector2 resolution = vector2_mul(contact_normal, resolution_len);
+
+    const Vector2 a_resolution = vector2_mul(resolution, 0.5f);
+    const Vector2 b_resolution = vector2_mul(resolution,-0.5f);
+
+    const Vector2 relative_velocity = vector2_sub(a->velocity, b->velocity);
+    const float contact_speed = vector2_dot(contact_normal, relative_velocity);
+
+    const float elasticity = 1.0f;
+
+    const Vector2 a_impulse = vector2_mul(contact_normal,-0.5f*contact_speed*elasticity);
+    const Vector2 b_impulse = vector2_mul(contact_normal, 0.5f*contact_speed*elasticity);
+
+    a->position = vector2_add(a->position, a_resolution);
+    b->position = vector2_add(b->position, b_resolution);
+    a->velocity = vector2_add(a->velocity, a_impulse);
+    b->velocity = vector2_add(b->velocity, b_impulse);
+
+    return 1;
+
+}
+
+static int collision_resolve_circle_rect(RigidBody *a, RigidBody *b) {}
+static int collision_resolve_rect_circle(RigidBody *a, RigidBody *b) {}
+static int collision_resolve_rect_rect(RigidBody *a, RigidBody *b) {}
+
+// To look up a collision resolution function, use collision_test_table[a_type][b_type].
+static int (*collision_resolution_table[][COLLIDER_UNDEFINED])(RigidBody *, RigidBody *) = {
+    { collision_resolve_circle_circle, collision_resolve_circle_rect },
+    { collision_resolve_rect_circle,   collision_resolve_rect_rect }
+};
 
 static void update_positions(Array *array, float dt) {
 
@@ -32,87 +113,16 @@ static void update_positions(Array *array, float dt) {
 
 }
 
-static int collision_test(Array *array) {
-
-    for (int i = 0; i < array->count; i++) {
-        for (int j = 0; j < i; j++) {
-
-            RigidBody *a = array_get(array, i);
-            RigidBody *b = array_get(array, j);
-
-            if (a->collider_type == COLLIDER_CIRCLE && b->collider_type == COLLIDER_CIRCLE) {
-
-                const float ar = a->collider.circle.radius;
-                const float br = b->collider.circle.radius;
-
-                const Vector2 diff = vector2_sub(a->position, b->position);
-                const float diff_len = vector2_length(diff);
-                const float resolution_len = ar + br - diff_len;
-                if (resolution_len > 0.0f) return 1; // There was a collision.
-                
-
-            } else {
-                DEBUG("Trying to update rigid bodies with collider_type COLLIDER_UNDEFINED!");
-                return 0;
-            }
-
-        }
-    }
-
-    return 0;
-}
-
 static void impulse_resolution(Array *array) {
-
     for (int i = 0; i < array->count; i++) {
         for (int j = 0; j < i; j++) {
-
             RigidBody *a = array_get(array, i);
             RigidBody *b = array_get(array, j);
-
-            Vector2 a_resolution,
-                    b_resolution,
-                    a_impulse,
-                    b_impulse;
-
-            if (a->collider_type == COLLIDER_CIRCLE && b->collider_type == COLLIDER_CIRCLE) {
-
-                const float ar = a->collider.circle.radius;
-                const float br = b->collider.circle.radius;
-
-                const Vector2 diff = vector2_sub(a->position, b->position);
-                const float diff_len = vector2_length(diff);
-                const float resolution_len = ar + br - diff_len;
-                if (resolution_len <= 0.0f) continue; // No collision here.
-
-                const Vector2 contact_normal = vector2_normalize(diff);
-                const Vector2 resolution = vector2_mul(contact_normal, resolution_len);
-
-                a_resolution = vector2_mul(resolution, 0.5f);
-                b_resolution = vector2_mul(resolution,-0.5f);
-
-                const Vector2 relative_velocity = vector2_sub(a->velocity, b->velocity);
-                const float contact_speed = vector2_dot(contact_normal, relative_velocity);
-
-                const float elasticity = 1.0f;
-
-                a_impulse = vector2_mul(contact_normal,-0.5f*contact_speed*elasticity);
-                b_impulse = vector2_mul(contact_normal, 0.5f*contact_speed*elasticity);
-
-            } else {
-                DEBUG("Trying to update rigid bodies with collider_type COLLIDER_UNDEFINED!");
-                return;
+            if (collision_resolution_table[a->collider_type][b->collider_type](a, b)) {
+                // Make function callbacks.
+                if (a->callback != NULL) a->callback(a->callback_data, b->callback_data);
+                if (b->callback != NULL) b->callback(b->callback_data, a->callback_data);
             }
-
-            a->position = vector2_add(a->position, a_resolution);
-            b->position = vector2_add(b->position, b_resolution);
-            a->velocity = vector2_add(a->velocity, a_impulse);
-            b->velocity = vector2_add(b->velocity, b_impulse);
-
-            // Make function callbacks.
-            if (a->callback != NULL) a->callback(a->callback_data, b->callback_data);
-            if (b->callback != NULL) b->callback(b->callback_data, a->callback_data);
-
         }
     }
 }
