@@ -15,6 +15,12 @@ typedef struct Spaceship Spaceship;
 
 void draw_spaceship(DrawContext *dc, Texture *texture, int spaceship, int flap, float x, float y, float angle);
 
+void collision_callback(void *va, void *vb) {
+    int a = (int) ((long) va);
+    int b = (int) ((long) vb);
+    DEBUG("%d %d", a, b);
+}
+
 int main(int argc, char *argv[]) {
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -88,17 +94,29 @@ int main(int argc, char *argv[]) {
     physics_scene_init(&physics_scene);
 
     RigidBody *cursor = physics_scene_add(&physics_scene);
-    RigidBody *ball   = physics_scene_add(&physics_scene);
+    RigidBody *ball1  = physics_scene_add(&physics_scene);
+    RigidBody *ball2  = physics_scene_add(&physics_scene);
 
-    cursor->position.x = 0.0f;
-    cursor->position.y = 0.0f;
+    cursor->position.x = 0.4f;
+    cursor->position.y = 0.4f;
     cursor->collider_type = COLLIDER_CIRCLE;
     cursor->collider.circle.radius = 0.05f;
+    cursor->callback = collision_callback;
+    cursor->callback_data = (void *) ((long) 0);
 
-    ball->position.x = 0.4f;
-    ball->position.y = 0.4f;
-    ball->collider_type = COLLIDER_CIRCLE;
-    ball->collider.circle.radius = 0.1f;
+    ball1->position.x = 0.0f;
+    ball1->position.y = 0.0f;
+    ball1->collider_type = COLLIDER_CIRCLE;
+    ball1->collider.circle.radius = 0.1f;
+    ball1->callback = collision_callback;
+    ball1->callback_data = (void *) ((long) 1);
+
+    ball2->position.x =-0.4f;
+    ball2->position.y = 0.0f;
+    ball2->collider_type = COLLIDER_CIRCLE;
+    ball2->collider.circle.radius = 0.15f;
+    ball2->callback = collision_callback;
+    ball2->callback_data = (void *) ((long) 2);
 
     while (1) {
 
@@ -194,7 +212,10 @@ int main(int argc, char *argv[]) {
         draw_circle(&dc, cursor->position.x, cursor->position.y, cursor->collider.circle.radius);
 
         draw_set_color(&dc, 0.6f, 0.1f, 0.1f, 1.0f);
-        draw_circle(&dc, ball->position.x, ball->position.y, ball->collider.circle.radius);
+        draw_circle(&dc, ball1->position.x, ball1->position.y, ball1->collider.circle.radius);
+
+        draw_set_color(&dc, 0.2f, 0.8f, 0.2f, 1.0f);
+        draw_circle(&dc, ball2->position.x, ball2->position.y, ball2->collider.circle.radius);
 
         window_redraw(&window);
 

@@ -2,6 +2,17 @@
 #include "misc.h"
 #include <math.h>
 
+/* TODO
+
+   LONG TERM
+   broadphase (quadtrees?)
+
+   SHORT TERM
+   RectCollider
+   callback functions
+
+*/
+
 static void update_positions(Array *array, float dt) {
 
     // Position = velocity * time.
@@ -38,9 +49,6 @@ static int collision_test(Array *array) {
                 const float diff_len = vector2_length(diff);
                 const float resolution_len = ar + br - diff_len;
                 if (resolution_len > 0.0f) return 1; // There was a collision.
-
-                //const Vector2 contact_normal = vector2_normalize(diff);
-                //*resolution = vector2_mul(contact_normal, resolution_len);
                 
 
             } else {
@@ -86,8 +94,10 @@ static void impulse_resolution(Array *array) {
                 const Vector2 relative_velocity = vector2_sub(a->velocity, b->velocity);
                 const float contact_speed = vector2_dot(contact_normal, relative_velocity);
 
-                a_impulse = vector2_mul(contact_normal,-0.5f*contact_speed);
-                b_impulse = vector2_mul(contact_normal, 0.5f*contact_speed);
+                const float elasticity = 1.0f;
+
+                a_impulse = vector2_mul(contact_normal,-0.5f*contact_speed*elasticity);
+                b_impulse = vector2_mul(contact_normal, 0.5f*contact_speed*elasticity);
 
             } else {
                 DEBUG("Trying to update rigid bodies with collider_type COLLIDER_UNDEFINED!");
@@ -99,7 +109,9 @@ static void impulse_resolution(Array *array) {
             a->velocity = vector2_add(a->velocity, a_impulse);
             b->velocity = vector2_add(b->velocity, b_impulse);
 
-            DEBUG("%f", vector2_length(a->velocity));
+            // Make function callbacks.
+            if (a->callback != NULL) a->callback(a->callback_data, b->callback_data);
+            if (b->callback != NULL) b->callback(b->callback_data, a->callback_data);
 
         }
     }
@@ -108,44 +120,44 @@ static void impulse_resolution(Array *array) {
 void physics_scene_step(PhysicsScene *scene, float dt) {
 
     // TODO Broadphase.
-    // TODO Binary search through dt for sub-frame collision detection.
-    // TODO Iterate over collision detection a few times.
 
-    // Operate on the backup array while we hunt for collisions.
-    Array *array = &scene->rigid_bodies_backup;
-    array_copy(array, &scene->rigid_bodies); // Update the backup.
+    for (int n = 0; n < 128; n++) {
 
-    update_positions(array, dt);
+        // Operate on the backup array while we hunt for collisions.
+        Array *array = &scene->rigid_bodies_backup;
+        array_copy(array, &scene->rigid_bodies); // Update the backup.
 
-    if (!collision_test(array)) {
-        // There was no collision, move along.
+        update_positions(array, dt);
+
+        if (!collision_test(array)) {
+            // There was no collision so we're done!
+            array_copy(&scene->rigid_bodies, array);
+            break;
+        }
+
+        // Otherwise, begin binary search for the time of collision.
+        float guess = dt,
+              p     = 1.0f;
+        for (int i = 0; i < 16; i++) {
+
+            p /= 2.0f;
+            if (collision_test(array)) guess -= p*dt;
+            else                       guess += p*dt;
+
+            array_copy(array, &scene->rigid_bodies); // Restore the backup.
+            update_positions(array, guess);
+
+        }
+        
+        impulse_resolution(array);
+
         array_copy(&scene->rigid_bodies, array);
-        return;
-    }
 
-    // Otherwise, begin binary search.
-    float guess = 0.5f * dt,
-          p     = 0.25f;
-    for (int i = 0; i < 16; i++) {
-
-        array_copy(array, &scene->rigid_bodies); // Restore the backup.
-        update_positions(array, guess);
-
-        if (collision_test(array)) guess -= p*dt;
-        else                       guess += p*dt;
-        p /= 2.0f;
+        dt -= guess;
+        if (dt > 0.0f) continue;
+        else           break;
 
     }
-
-    // TODO Adjust velocities and junk.
-
-    // TODO Resolve impulses again?
-    
-    impulse_resolution(array);
-
-    array_copy(&scene->rigid_bodies, array);
-
-    if (dt-guess > 0.0f) physics_scene_step(scene, dt - guess); // Update again.
 
 }
 
