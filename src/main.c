@@ -4,17 +4,6 @@
 #include "average.h" // For FPS averaging..
 #include "physics.h"
 
-struct Spaceship {
-    float angle,
-          position_x,
-          position_y,
-          velocity_x,
-          velocity_y;
-};
-typedef struct Spaceship Spaceship;
-
-void draw_spaceship(DrawContext *dc, Texture *texture, int spaceship, int flap, float x, float y, float angle);
-
 void collision_callback(void *va, void *vb) {
     int a = (int) ((long) va);
     int b = (int) ((long) vb);
@@ -79,23 +68,14 @@ int main(int argc, char *argv[]) {
     char *str = load_entire_file("Makefile");
     text_init(&static_text, &font, str);
 
-    SpriteBatch sprite_batch;
-    sprite_batch_init(&sprite_batch, 1);
     int state;
 
-    struct Spaceship player;
-    player.angle = M_PI/2.0f;
-    player.position_x = 0.0f;
-    player.position_y = -0.45f;
-
-    // TODO Test rigid bodies.
+    // Test rigid bodies.
 
     PhysicsScene physics_scene;
     physics_scene_init(&physics_scene);
 
     RigidBody *cursor = physics_scene_add(&physics_scene);
-    RigidBody *ball1  = physics_scene_add(&physics_scene);
-    RigidBody *ball2  = physics_scene_add(&physics_scene);
 
     cursor->position.x = 0.4f;
     cursor->position.y = 0.4f;
@@ -104,6 +84,7 @@ int main(int argc, char *argv[]) {
     cursor->callback = collision_callback;
     cursor->callback_data = (void *) ((long) 0);
 
+    RigidBody *ball1  = physics_scene_add(&physics_scene);
     ball1->position.x = 0.0f;
     ball1->position.y = 0.0f;
     ball1->collider_type = COLLIDER_CIRCLE;
@@ -111,12 +92,22 @@ int main(int argc, char *argv[]) {
     ball1->callback = collision_callback;
     ball1->callback_data = (void *) ((long) 1);
 
+    RigidBody *ball2  = physics_scene_add(&physics_scene);
     ball2->position.x =-0.4f;
     ball2->position.y = 0.0f;
     ball2->collider_type = COLLIDER_CIRCLE;
     ball2->collider.circle.radius = 0.15f;
     ball2->callback = collision_callback;
     ball2->callback_data = (void *) ((long) 2);
+
+    RigidBody *dude  = physics_scene_add(&physics_scene);
+    dude->position.x =-0.4f;
+    dude->position.y =-0.4f;
+    dude->collider_type = COLLIDER_RECT;
+    dude->collider.rect.width = 0.3f;
+    dude->collider.rect.height = 0.3f;
+    dude->callback = collision_callback;
+    dude->callback_data = (void *) ((long) 3);
 
     while (1) {
 
@@ -175,28 +166,10 @@ int main(int argc, char *argv[]) {
         draw_string(&dc, &font, buffer, 0.5f, -0.9f, TEXT_ALIGN_CENTER);
 
         // Sprite of man.
-        if (state != (window.elapsed_ms / 100) % 4) {
-            state = (window.elapsed_ms / 100) % 4;
-
-            Sprite sprite;
-            sprite_init(&sprite, 0.0f, 0.0f, 0.3f, 0.5f, state*0.25f, 0.0f, state*0.25f + 0.25f, 1.0f);
-            sprite_batch_clear(&sprite_batch);
-            sprite_batch_add(&sprite_batch, &sprite);
-            sprite_batch_update(&sprite_batch);
-
-        }
-
-        draw_sprite_batch(&dc, &sprite_batch, &dude_texture, -0.4f, -0.4f);
-
-        // Sprite of spaceship.
-
-        player.position_x += (window.input.right - window.input.left) * window.dt;
-
-        float angle = (float) window.elapsed_ms / 100;
-        while (angle < 0.0f)       angle += 2.0f*M_PI;
-        while (angle >= 2.0f*M_PI) angle -= 2.0f*M_PI;
-        int flap = (window.elapsed_ms / 200) % 2;
-        draw_spaceship(&dc, &galaga_texture, 2, flap, player.position_x, player.position_y, player.angle);
+        state = (window.elapsed_ms / 100) % 4;
+        Sprite sprite;
+        sprite_init(&sprite, 0.0f, 0.0f, 0.3f, 0.5f, state*0.25f, 0.0f, state*0.25f + 0.25f, 1.0f);
+        draw_sprite(&dc, &dude_texture, &sprite);
 
         // TODO Rigid bodies!
 
@@ -223,7 +196,6 @@ int main(int argc, char *argv[]) {
 
     physics_scene_destroy(&physics_scene);
 
-    sprite_batch_destroy(&sprite_batch);
     texture_destroy(&dude_texture);
     texture_destroy(&galaga_texture);
 
@@ -240,59 +212,4 @@ int main(int argc, char *argv[]) {
     free(str);
 
     return 0;
-}
-
-void draw_spaceship(DrawContext *dc, Texture *texture, int spaceship, int flap, float x, float y, float angle) {
-
-    int state = 24 - (int) (angle * 24/(2.0f*M_PI));
-    state = (state + 12) % 24;
-
-    const int w = texture->width,
-              h = texture->height;
-    const int r = state/6;
-    state = state % 6;
-
-    const float s = 0.15f;
-    x -= s/2;
-    y -= s/2;
-
-    // Draw a spaceship.
-
-    float u1, v1,
-          u2, v2;
-
-    if (state == 0 && flap) {
-        u1 = (13.0f + 24.0f*7) / w;
-        v1 = (309.0f - 24.0f*spaceship) / h;
-        u2 = u1 + 24.0f/w;
-        v2 = v1 + 24.0f/h;
-    } else if (r == 0) {
-        u1 = (13.0f + 24.0f*state) / w;
-        v1 = (309.0f - 24.0f*spaceship) / h;
-        u2 = u1 + 24.0f/w;
-        v2 = v1 + 24.0f/h;
-    } else if (r == 1) {
-        u1 = (13.0f + 24.0f*(6-state) - 3.0f + 24.0f) / w;
-        v1 = (309.0f - 24.0f*spaceship) / h;
-        u2 = u1 - 24.0f/w;
-        v2 = v1 + 24.0f/h;
-    } else if (r == 2) {
-        u1 = (13.0f + 24.0f*state - 3.0f + 24.0f) / w;
-        v1 = (309.0f - 24.0f*spaceship - 1.0f + 24.0f) / h;
-        u2 = u1 - 24.0f/w;
-        v2 = v1 - 24.0f/h;
-    } else {
-        u1 = (13.0f + 24.0f*(6-state)) / w;
-        v1 = (309.0f - 24.0f*spaceship - 1.0f + 24.0f) / h;
-        u2 = u1 + 24.0f/w;
-        v2 = v1 - 24.0f/h;
-    }
-
-    Sprite sprite;
-    sprite_init(&sprite, x, y, s, s,
-                         u1, v1,
-                         u2, v2);
-
-    draw_sprite(dc, &sprite, texture);
-
 }

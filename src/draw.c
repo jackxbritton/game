@@ -171,20 +171,18 @@ void draw_text(DrawContext *dc, Text *text, float x, float y, TextAlignment alig
     glDrawArrays(GL_TRIANGLES, 0, text->buffer_len/(4*sizeof(float)));
 }
 
-void draw_sprite(DrawContext *dc, Sprite *sprite, Texture *texture) {
+void draw_sprite(DrawContext *dc, Texture *texture, Sprite *sprite) {
 
     assert(dc != NULL);
-    assert(sprite != NULL);
     assert(texture != NULL);
 
-    const float s = 1.0f,
-                x = 0.0f,
-                y = 0.0f;
+    const float sx = 1.0f;
+    const float sy = dc->aspect;
 
     const GLfloat transform[] = {
-           s,         0.0f,    x,
-        0.0f, s*dc->aspect,    y,
-        0.0f,         0.0f, 1.0f
+          sx, 0.0f, 0.0f,
+        0.0f,   sy, 0.0f,
+        0.0f, 0.0f, 1.0f
     };
 
     GLuint gl_texture = texture->gl_texture;
@@ -305,6 +303,5 @@ void draw_circle(DrawContext *dc, float x, float y, float r) {
 
     glUniformMatrix3fv(dc->u_transform, 1, GL_FALSE, transform);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-
 
 }

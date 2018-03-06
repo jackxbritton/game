@@ -19,8 +19,7 @@ struct CircleCollider {
 typedef struct CircleCollider CircleCollider;
 
 struct RectCollider {
-    float x, y,
-          width, height;
+    float width, height;
 };
 typedef struct RectCollider RectCollider;
 
@@ -38,6 +37,7 @@ struct RigidBody {
     ColliderType collider_type;
     union {
         CircleCollider circle;
+        RectCollider rect;
     } collider;
 
     void (*callback)(void *a_data, void *b_data);
