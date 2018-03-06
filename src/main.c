@@ -168,7 +168,9 @@ int main(int argc, char *argv[]) {
         // Sprite of man.
         state = (window.elapsed_ms / 100) % 4;
         Sprite sprite;
-        sprite_init(&sprite, 0.0f, 0.0f, 0.3f, 0.5f, state*0.25f, 0.0f, state*0.25f + 0.25f, 1.0f);
+        sprite_init(&sprite, dude->position.x, dude->position.y,
+                             dude->collider.rect.width, dude->collider.rect.height,
+                             state*0.25f, 0.0f, state*0.25f + 0.25f, 1.0f);
         draw_sprite(&dc, &dude_texture, &sprite);
 
         // TODO Rigid bodies!

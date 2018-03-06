@@ -28,8 +28,14 @@ static int collision_test_circle_circle(RigidBody *a, RigidBody *b) {
 }
 
 static int collision_test_circle_rect(RigidBody *a, RigidBody *b) {
+
     // TODO
+
+    CircleCollider *c = &a->collider.circle;
+    RectCollider *r = &b->collider.rect;
+
     return 0;
+
 }
 static int collision_test_rect_circle(RigidBody *a, RigidBody *b) {
     return collision_test_circle_rect(b, a);
