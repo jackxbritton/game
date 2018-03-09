@@ -63,6 +63,8 @@ static int collision_test(Array *array) {
 
 // Collision resolution functions and jump table.
 
+#define TOUCHING 0.0f
+
 static int collision_resolve_circle_circle(RigidBody *a, RigidBody *b) {
 
     const float ar = a->collider.circle.radius;
@@ -71,10 +73,10 @@ static int collision_resolve_circle_circle(RigidBody *a, RigidBody *b) {
     const Vector2 diff = vector2_sub(a->position, b->position);
     const float diff_len = vector2_length(diff);
     const float resolution_len = ar + br - diff_len;
-    if (resolution_len <= 0.0f) return 0; // No collision here.
+    if (resolution_len <= -TOUCHING) return 0; // No collision here.
 
     const Vector2 contact_normal = vector2_normalize(diff);
-    const Vector2 resolution = vector2_mul(contact_normal, resolution_len);
+    const Vector2 resolution = vector2_mul(contact_normal, resolution_len + TOUCHING);
 
     a->position = vector2_add(a->position, vector2_mul(resolution, 0.5f));
     b->position = vector2_add(b->position, vector2_mul(resolution, -0.5f));
@@ -82,7 +84,7 @@ static int collision_resolve_circle_circle(RigidBody *a, RigidBody *b) {
     const Vector2 relative_velocity = vector2_sub(a->velocity, b->velocity);
     const float contact_speed = vector2_dot(contact_normal, relative_velocity);
 
-    const float elasticity = 1.0f;
+    const float elasticity = 4.0f;
     a->velocity = vector2_add(a->velocity,
                               vector2_mul(contact_normal,-0.5f*contact_speed*elasticity));
     b->velocity = vector2_add(b->velocity,
@@ -120,7 +122,7 @@ static void update_positions(Array *array, float dt) {
         rb->position.y += rb->velocity.y * dt;
 
         // Friction.
-        const float friction = 0.7f;
+        const float friction = 1.5f;
         Vector2 norm = vector2_normalize(rb->velocity);
         float speed = vector2_length(rb->velocity) - friction*dt;
         if (speed < 0.0f) speed = 0.0f;
@@ -163,12 +165,17 @@ void physics_scene_step(PhysicsScene *scene, float dt) {
 
         // Otherwise, begin binary search for the time of collision.
         float guess = dt,
+              final_guess = dt,
               p     = 1.0f;
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < 8; i++) {
 
             p /= 2.0f;
-            if (collision_test(array)) guess -= p*dt;
-            else                       guess += p*dt;
+            if (collision_test(array)) {
+                guess -= p*dt;
+                final_guess = guess; // We want the last guess to leave them colliding.
+            } else {
+                guess += p*dt;
+            }
 
             array_copy(array, &scene->rigid_bodies); // Restore the backup.
             update_positions(array, guess);
@@ -179,7 +186,7 @@ void physics_scene_step(PhysicsScene *scene, float dt) {
 
         array_copy(&scene->rigid_bodies, array);
 
-        dt -= guess;
+        dt -= final_guess;
         if (dt > 0.0f) continue;
         else           break;
 
